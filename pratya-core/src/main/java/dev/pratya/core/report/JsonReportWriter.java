@@ -22,19 +22,52 @@ public class JsonReportWriter implements ReportWriter {
         root.put("module", matrix.getModule().getId());
         root.put("generatedAt", Instant.now().toString());
 
-        // Summary
-        ObjectNode summary = root.putObject("summary");
-        summary.put("totalRequirements", matrix.getSummary().getTotalRequirements());
-        summary.put("activeRequirements", matrix.getSummary().getActiveRequirements());
-        summary.put("coveredRequirements", matrix.getSummary().getCoveredRequirements());
-        summary.put("requirementCoverage", matrix.getSummary().getRequirementCoverage());
-        summary.put("totalCornerCases", matrix.getSummary().getTotalCornerCases());
-        summary.put("coveredCornerCases", matrix.getSummary().getCoveredCornerCases());
-        summary.put("cornerCaseCoverage", matrix.getSummary().getCornerCaseCoverage());
+        writeSummaryNode(root.putObject("summary"), matrix.getSummary());
+        writeRequirementsArray(root.putArray("requirements"), matrix.getRequirements());
+        writeViolationsArray(root.putArray("violations"), violations);
 
-        // Requirements
-        ArrayNode requirements = root.putArray("requirements");
-        for (RequirementCoverage req : matrix.getRequirements()) {
+        Files.createDirectories(outputFile.getParent());
+        mapper.writerWithDefaultPrettyPrinter().writeValue(outputFile.toFile(), root);
+    }
+
+    public void writeAggregateJsonReport(AggregateReportData data, Path outputFile) throws IOException {
+        ObjectNode root = mapper.createObjectNode();
+
+        root.put("type", "aggregate");
+        root.put("generatedAt", Instant.now().toString());
+
+        // Aggregate summary
+        writeSummaryNode(root.putObject("summary"), data.getAggregateSummary());
+
+        // Per-module entries
+        ArrayNode modulesArray = root.putArray("modules");
+        for (CoverageMatrix matrix : data.getModules()) {
+            ObjectNode moduleNode = modulesArray.addObject();
+            moduleNode.put("module", matrix.getModule().getId());
+            writeSummaryNode(moduleNode.putObject("summary"), matrix.getSummary());
+            writeRequirementsArray(moduleNode.putArray("requirements"), matrix.getRequirements());
+            writeViolationsArray(moduleNode.putArray("violations"), matrix.getViolations());
+        }
+
+        // All violations (with module prefix in message)
+        writeViolationsArray(root.putArray("violations"), data.getAllViolations());
+
+        Files.createDirectories(outputFile.getParent());
+        mapper.writerWithDefaultPrettyPrinter().writeValue(outputFile.toFile(), root);
+    }
+
+    private void writeSummaryNode(ObjectNode summary, CoverageSummary s) {
+        summary.put("totalRequirements", s.getTotalRequirements());
+        summary.put("activeRequirements", s.getActiveRequirements());
+        summary.put("coveredRequirements", s.getCoveredRequirements());
+        summary.put("requirementCoverage", s.getRequirementCoverage());
+        summary.put("totalCornerCases", s.getTotalCornerCases());
+        summary.put("coveredCornerCases", s.getCoveredCornerCases());
+        summary.put("cornerCaseCoverage", s.getCornerCaseCoverage());
+    }
+
+    private void writeRequirementsArray(ArrayNode requirements, List<RequirementCoverage> reqs) {
+        for (RequirementCoverage req : reqs) {
             ObjectNode reqNode = requirements.addObject();
             reqNode.put("id", req.getId());
             reqNode.put("status", req.getStatus().name().toLowerCase());
@@ -63,9 +96,9 @@ public class JsonReportWriter implements ReportWriter {
                 }
             }
         }
+    }
 
-        // Violations
-        ArrayNode violationsArray = root.putArray("violations");
+    private void writeViolationsArray(ArrayNode violationsArray, List<Violation> violations) {
         for (Violation v : violations) {
             ObjectNode vNode = violationsArray.addObject();
             vNode.put("type", v.getType().name());
@@ -78,9 +111,6 @@ public class JsonReportWriter implements ReportWriter {
             }
             vNode.put("message", v.getMessage());
         }
-
-        Files.createDirectories(outputFile.getParent());
-        mapper.writerWithDefaultPrettyPrinter().writeValue(outputFile.toFile(), root);
     }
 
     @Override

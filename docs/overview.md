@@ -298,7 +298,7 @@ Hooks into the Maven `verify` phase (after `test` phase completes).
     <artifactId>pratya-maven-plugin</artifactId>
     <version>1.0.0</version>
     <configuration>
-        <contractFile>${project.basedir}/CONTRACT.yaml</contractFile>
+        <requirementFile>${project.basedir}/CONTRACT.yaml</requirementFile>
         <testClassesDirectory>${project.build.testOutputDirectory}</testClassesDirectory>
         <outputDirectory>${project.build.directory}/pratya</outputDirectory>
         <failOnViolations>true</failOnViolations>
@@ -533,6 +533,7 @@ In test files, a gutter icon appears next to `@Requirement("AUTH-001")` annotati
 
 ### Future considerations (post v1.0)
 - **Test generation** — given a `CONTRACT.yaml`, generate test method stubs pre-annotated with `@Requirement` IDs, one per requirement and corner case. Reduces the bootstrap cost of writing contract tests from scratch and ensures no requirement or corner case is missed. Natural fit for AI-assisted generation in the vibe coding workflow.
+- **MCP server** — expose Pratya's full read/write surface as a Model Context Protocol server. Tools like `get_contract`, `list_requirements`, `get_requirement`, `list_untested`, `get_coverage_matrix`, `add_requirement`, `update_requirement`, `add_corner_case` allow AI agents to participate directly in the contract-driven development loop. The agent reads the contract before generating code, checks coverage after generating tests, and iterates until the contract is satisfied — closing the vibe coding quality loop that no existing tool addresses.
 
 ---
 

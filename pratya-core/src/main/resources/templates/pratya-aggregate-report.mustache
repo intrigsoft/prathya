@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pratya Aggregate Report</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #333; background: #f8f9fa; }
+        .container { max-width: 1100px; margin: 0 auto; padding: 20px; }
+        header { background: #2c3e50; color: #fff; padding: 24px 0; margin-bottom: 24px; }
+        header .container { display: flex; justify-content: space-between; align-items: center; }
+        header h1 { font-size: 1.5rem; }
+        header .timestamp { font-size: 0.85rem; opacity: 0.8; }
+        .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+        .summary-card { background: #fff; border-radius: 8px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); text-align: center; }
+        .summary-card .value { font-size: 2rem; font-weight: 700; color: #2c3e50; }
+        .summary-card .label { font-size: 0.85rem; color: #777; margin-top: 4px; }
+        h2 { font-size: 1.2rem; color: #2c3e50; margin: 24px 0 12px; }
+        table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 24px; }
+        th { background: #34495e; color: #fff; text-align: left; padding: 12px 16px; font-weight: 600; font-size: 0.85rem; text-transform: uppercase; }
+        td { padding: 10px 16px; border-bottom: 1px solid #eee; font-size: 0.9rem; }
+        tr:last-child td { border-bottom: none; }
+        .badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: 600; }
+        .badge.covered { background: #d4edda; color: #155724; }
+        .badge.uncovered { background: #f8d7da; color: #721c24; }
+        .badge.inactive { background: #e2e3e5; color: #6c757d; }
+        .badge.passing { background: #d4edda; color: #155724; }
+        .badge.failing { background: #f8d7da; color: #721c24; }
+        .corner-cases { margin-top: 6px; padding-left: 16px; font-size: 0.85rem; color: #555; }
+        .corner-cases li { margin: 2px 0; }
+        .corner-cases .cc-covered { color: #155724; }
+        .corner-cases .cc-uncovered { color: #721c24; }
+        .violations { background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 20px; margin-bottom: 24px; }
+        .violations h2 { color: #856404; margin-bottom: 12px; font-size: 1.1rem; margin-top: 0; }
+        .violations table { box-shadow: none; margin-bottom: 0; }
+        .violations th { background: #856404; }
+        .badge.severity-error { background: #f8d7da; color: #721c24; }
+        .badge.severity-warn { background: #fff3cd; color: #856404; }
+        .module-section { background: #fff; border-radius: 8px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 16px; }
+        .module-section h3 { font-size: 1rem; color: #2c3e50; margin-bottom: 12px; cursor: pointer; }
+        .module-section h3:hover { color: #3498db; }
+        footer { text-align: center; padding: 20px; font-size: 0.8rem; color: #999; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Pratya — Aggregate Report</h1>
+            <span class="timestamp">Generated: {{generatedAt}}</span>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="summary">
+            <div class="summary-card">
+                <div class="value">{{moduleCount}}</div>
+                <div class="label">Modules</div>
+            </div>
+            <div class="summary-card">
+                <div class="value">{{requirementCoverage}}%</div>
+                <div class="label">Requirement Coverage</div>
+            </div>
+            <div class="summary-card">
+                <div class="value">{{coveredRequirements}} / {{activeRequirements}}</div>
+                <div class="label">Requirements Covered</div>
+            </div>
+            <div class="summary-card">
+                <div class="value">{{cornerCaseCoverage}}%</div>
+                <div class="label">Corner Case Coverage</div>
+            </div>
+            <div class="summary-card">
+                <div class="value">{{coveredCornerCases}} / {{totalCornerCases}}</div>
+                <div class="label">Corner Cases Covered</div>
+            </div>
+        </div>
+
+        <h2>Module Breakdown</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Module</th>
+                    <th>Req. Coverage</th>
+                    <th>Requirements</th>
+                    <th>CC Coverage</th>
+                    <th>Corner Cases</th>
+                    <th>Violations</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#modules}}
+                <tr>
+                    <td><strong>{{moduleId}}</strong></td>
+                    <td>{{requirementCoverage}}%</td>
+                    <td>{{coveredRequirements}} / {{activeRequirements}}</td>
+                    <td>{{cornerCaseCoverage}}%</td>
+                    <td>{{coveredCornerCases}} / {{totalCornerCases}}</td>
+                    <td>{{violationCount}}</td>
+                </tr>
+                {{/modules}}
+            </tbody>
+        </table>
+
+        {{#modules}}
+        <div class="module-section">
+            <h3>{{moduleName}} ({{moduleId}})</h3>
+            {{#hasRequirements}}
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Status</th>
+                        <th>Coverage</th>
+                        <th>Tests</th>
+                        <th>Corner Cases</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#requirements}}
+                    <tr>
+                        <td><strong>{{id}}</strong></td>
+                        <td><span class="badge {{statusClass}}">{{status}}</span></td>
+                        <td>
+                            {{#covered}}<span class="badge covered">covered</span>{{/covered}}
+                            {{#uncovered}}<span class="badge uncovered">uncovered</span>{{/uncovered}}
+                            {{#passing}}<span class="badge passing">passing</span>{{/passing}}
+                            {{#failing}}<span class="badge failing">failing</span>{{/failing}}
+                        </td>
+                        <td>{{testCount}}</td>
+                        <td>
+                            {{#hasCornerCases}}
+                            <ul class="corner-cases">
+                                {{#cornerCases}}
+                                <li class="{{#covered}}cc-covered{{/covered}}{{#uncovered}}cc-uncovered{{/uncovered}}">
+                                    {{id}} — {{#covered}}covered{{/covered}}{{#uncovered}}uncovered{{/uncovered}}
+                                </li>
+                                {{/cornerCases}}
+                            </ul>
+                            {{/hasCornerCases}}
+                            {{^hasCornerCases}}—{{/hasCornerCases}}
+                        </td>
+                    </tr>
+                    {{/requirements}}
+                </tbody>
+            </table>
+            {{/hasRequirements}}
+        </div>
+        {{/modules}}
+
+        {{#hasViolations}}
+        <div class="violations">
+            <h2>All Violations</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Severity</th>
+                        <th>Type</th>
+                        <th>Requirement</th>
+                        <th>Corner Case</th>
+                        <th>Message</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#violations}}
+                    <tr>
+                        <td><span class="badge severity-{{severity}}">{{severity}}</span></td>
+                        <td>{{type}}</td>
+                        <td>{{requirementId}}</td>
+                        <td>{{cornerCaseId}}</td>
+                        <td>{{message}}</td>
+                    </tr>
+                    {{/violations}}
+                </tbody>
+            </table>
+        </div>
+        {{/hasViolations}}
+    </div>
+
+    <footer>
+        Generated by Pratya
+    </footer>
+</body>
+</html>
