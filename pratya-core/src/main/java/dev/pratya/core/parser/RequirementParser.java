@@ -6,7 +6,7 @@ import dev.pratya.core.model.ModuleContract;
 import java.nio.file.Path;
 
 /**
- * Parses a {@code REQUIREMENT.yaml} file into a {@link ModuleContract}.
+ * Parses a {@code CONTRACT.yaml} file into a {@link ModuleContract}.
  */
 public interface RequirementParser {
 

@@ -55,7 +55,7 @@ public class DefaultAuditEngine implements AuditEngine {
                 violations.add(new Violation(
                         ViolationType.ORPHANED_ANNOTATION,
                         refId, null,
-                        "Annotation references ID '" + refId + "' which is not defined in REQUIREMENT.yaml"));
+                        "Annotation references ID '" + refId + "' which is not defined in CONTRACT.yaml"));
             }
         }
 

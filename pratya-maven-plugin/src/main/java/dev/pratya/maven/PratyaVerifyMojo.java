@@ -51,7 +51,7 @@ public class PratyaVerifyMojo extends AbstractPratyaMojo {
             }
 
         } catch (PratyaException e) {
-            throw new MojoFailureException("Failed to parse REQUIREMENT.yaml: " + e.getMessage(), e);
+            throw new MojoFailureException("Failed to parse CONTRACT.yaml: " + e.getMessage(), e);
         } catch (IOException e) {
             throw new MojoFailureException("Failed to write reports: " + e.getMessage(), e);
         }

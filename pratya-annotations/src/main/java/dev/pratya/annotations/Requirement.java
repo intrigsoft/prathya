@@ -8,7 +8,7 @@ import java.lang.annotation.Target;
 
 /**
  * Links a test method to one or more requirement or corner-case IDs
- * defined in {@code REQUIREMENT.yaml}.
+ * defined in {@code CONTRACT.yaml}.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)

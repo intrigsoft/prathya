@@ -24,8 +24,8 @@ import java.util.stream.Collectors;
 
 public abstract class AbstractPratyaMojo extends AbstractMojo {
 
-    @Parameter(property = "pratya.requirementFile", defaultValue = "${project.basedir}/REQUIREMENT.yaml")
-    protected String requirementFile;
+    @Parameter(property = "pratya.contractFile", defaultValue = "${project.basedir}/CONTRACT.yaml")
+    protected String contractFile;
 
     @Parameter(property = "pratya.testClassesDirectory", defaultValue = "${project.build.testOutputDirectory}")
     protected String testClassesDirectory;
@@ -48,7 +48,7 @@ public abstract class AbstractPratyaMojo extends AbstractMojo {
     protected PipelineResult runPipeline() throws PratyaException {
         // 1. Parse
         RequirementParser parser = new YamlRequirementParser();
-        ModuleContract contract = parser.parse(Path.of(requirementFile));
+        ModuleContract contract = parser.parse(Path.of(contractFile));
 
         // 2. Filter excluded statuses
         if (excludeStatuses != null && !excludeStatuses.isEmpty()) {
@@ -98,7 +98,7 @@ public abstract class AbstractPratyaMojo extends AbstractMojo {
     }
 
     protected boolean shouldSkip() {
-        Path reqFile = Path.of(requirementFile);
+        Path reqFile = Path.of(contractFile);
 
         if (skip) {
             getLog().info("Pratya verification skipped.");
@@ -106,7 +106,7 @@ public abstract class AbstractPratyaMojo extends AbstractMojo {
         }
 
         if (!Files.exists(reqFile)) {
-            getLog().info("No REQUIREMENT.yaml found at " + reqFile + ", skipping.");
+            getLog().info("No CONTRACT.yaml found at " + reqFile + ", skipping.");
             return true;
         }
 

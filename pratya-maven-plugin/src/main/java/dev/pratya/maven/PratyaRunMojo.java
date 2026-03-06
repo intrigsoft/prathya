@@ -68,8 +68,8 @@ public class PratyaRunMojo extends AbstractPratyaMojo {
         }
 
         try {
-            // 1. Parse REQUIREMENT.yaml
-            ModuleContract contract = new YamlRequirementParser().parse(Path.of(requirementFile));
+            // 1. Parse CONTRACT.yaml
+            ModuleContract contract = new YamlRequirementParser().parse(Path.of(contractFile));
 
             // 2. Filter excluded statuses
             if (excludeStatuses != null && !excludeStatuses.isEmpty()) {
@@ -210,7 +210,7 @@ public class PratyaRunMojo extends AbstractPratyaMojo {
             }
 
         } catch (PratyaException e) {
-            throw new MojoFailureException("Failed to parse REQUIREMENT.yaml: " + e.getMessage(), e);
+            throw new MojoFailureException("Failed to parse CONTRACT.yaml: " + e.getMessage(), e);
         } catch (IOException e) {
             throw new MojoFailureException("Failed to write reports: " + e.getMessage(), e);
         } catch (MavenInvocationException e) {

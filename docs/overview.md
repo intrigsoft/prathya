@@ -17,14 +17,14 @@ Pratya is designed to sit alongside JaCoCo in the Java build lifecycle. Used tog
 
 ## Core Concepts
 
-### The Contract (`REQUIREMENT.yaml`)
-Every module has a `REQUIREMENT.yaml` file that defines its behavioral contract. This is a human-authored, version-controlled artifact that defines what the module is supposed to do — including corner cases as first-class citizens, not afterthoughts.
+### The Contract (`CONTRACT.yaml`)
+Every module has a `CONTRACT.yaml` file that defines its behavioral contract. This is a human-authored, version-controlled artifact that defines what the module is supposed to do — including corner cases as first-class citizens, not afterthoughts.
 
 ### The Annotation (`@Requirement`)
 Test methods are annotated with `@Requirement("REQ-ID")` to declare what requirement or corner case they verify. This is the only coupling between test code and requirements.
 
 ### Requirement Coverage
-Pratya scans annotations at build time, cross-references them against `REQUIREMENT.yaml`, and computes a coverage matrix. It produces an HTML report and a machine-readable JSON for CI integration.
+Pratya scans annotations at build time, cross-references them against `CONTRACT.yaml`, and computes a coverage matrix. It produces an HTML report and a machine-readable JSON for CI integration.
 
 ### No Manual Trace File
 The trace is derived from annotations at build time — no manually maintained mapping file is needed. The annotations _are_ the trace. This keeps the maintenance burden minimal.
@@ -58,7 +58,7 @@ Requirement versions follow semver semantics:
 
 ## File Formats
 
-### REQUIREMENT.yaml
+### CONTRACT.yaml
 
 ```yaml
 module:
@@ -241,12 +241,12 @@ public @interface Requirement {
 
 The framework-agnostic engine. Contains:
 
-- **YAML parser** — reads and validates `REQUIREMENT.yaml` against schema
+- **YAML parser** — reads and validates `CONTRACT.yaml` against schema
 - **Domain model** — `Requirement`, `CornerCase`, `RequirementStatus`, `TraceEntry`, `CoverageMatrix`
 - **Reflection scanner** — given a list of compiled test class files, scans for `@Requirement` annotations and builds trace entries
 - **Coverage computer** — cross-references trace against requirements, computes coverage percentages per requirement, per module, and overall
 - **Report generator** — produces HTML report and JSON summary
-- **Audit engine** — flags orphaned annotations (ID in `@Requirement` not found in REQUIREMENT.yaml), untested requirements, deprecated requirements still being tested
+- **Audit engine** — flags orphaned annotations (ID in `@Requirement` not found in CONTRACT.yaml), untested requirements, deprecated requirements still being tested
 - **Test runner bridge** — given a filtered set of test class/method names, constructs the Surefire filter string and invokes `mvn test` via Maven Invoker API; parses resulting `TEST-*.xml` reports and maps pass/fail back to requirement IDs
 
 **Dependencies:**
@@ -298,7 +298,7 @@ Hooks into the Maven `verify` phase (after `test` phase completes).
     <artifactId>pratya-maven-plugin</artifactId>
     <version>1.0.0</version>
     <configuration>
-        <requirementFile>${project.basedir}/REQUIREMENT.yaml</requirementFile>
+        <contractFile>${project.basedir}/CONTRACT.yaml</contractFile>
         <testClassesDirectory>${project.build.testOutputDirectory}</testClassesDirectory>
         <outputDirectory>${project.build.directory}/pratya</outputDirectory>
         <failOnViolations>true</failOnViolations>
@@ -342,7 +342,7 @@ The practical implication: teams place `@Requirement`-annotated tests in standar
 
 ### Execution flow
 
-1. Read `REQUIREMENT.yaml` from the project root
+1. Read `CONTRACT.yaml` from the project root
 2. Scan `@Requirement` annotations across compiled test classes
 3. Resolve the subset of test methods mapped to **approved** requirements
 4. Construct a Surefire-compatible filter string (`ClassName#method+ClassName#method`)
@@ -460,7 +460,7 @@ Machine-readable. Intended for CI dashboards and quality gates.
 The plugin fails the build if `failOnViolations` is true and any of the following are detected:
 
 - Requirement coverage below `minimumRequirementCoverage` threshold
-- `@Requirement` annotation references an ID not found in `REQUIREMENT.yaml`
+- `@Requirement` annotation references an ID not found in `CONTRACT.yaml`
 - An `approved` requirement has zero test coverage
 - An `approved` corner case has zero test coverage (configurable severity)
 
@@ -470,7 +470,7 @@ This mirrors JaCoCo's minimum coverage gate pattern, which teams already underst
 
 ## Multi-Module Projects
 
-For multi-module Maven projects, `REQUIREMENT.yaml` lives at the module level. Each module has its own contract. The parent build aggregates reports from all child modules into a top-level coverage summary.
+For multi-module Maven projects, `CONTRACT.yaml` lives at the module level. Each module has its own contract. The parent build aggregates reports from all child modules into a top-level coverage summary.
 
 Aggregation is handled by a separate `pratya:aggregate` goal bound to the parent POM's `verify` phase.
 
@@ -482,7 +482,7 @@ The `pratya:audit` goal checks for and reports:
 
 | Rule | Severity |
 |---|---|
-| `@Requirement` ID not found in REQUIREMENT.yaml | ERROR |
+| `@Requirement` ID not found in CONTRACT.yaml | ERROR |
 | Approved requirement with no tests | ERROR |
 | Approved requirement with uncovered corner cases | WARN |
 | Deprecated requirement still referenced in `@Requirement` | WARN |
@@ -513,7 +513,7 @@ When an existing requirement is edited, the plugin detects change severity and p
 - Duplicate IDs detected on save
 
 ### Traceability gutter icons
-In test files, a gutter icon appears next to `@Requirement("AUTH-001")` annotations. Hovering shows the requirement title and description inline. Clicking navigates to the requirement in REQUIREMENT.yaml. The reverse works too — the requirement panel shows which test methods are mapped to each requirement and their current pass/fail state from the last `pratya:run` execution.
+In test files, a gutter icon appears next to `@Requirement("AUTH-001")` annotations. Hovering shows the requirement title and description inline. Clicking navigates to the requirement in CONTRACT.yaml. The reverse works too — the requirement panel shows which test methods are mapped to each requirement and their current pass/fail state from the last `pratya:run` execution.
 
 **Distribution:** JetBrains Marketplace.
 
@@ -532,7 +532,7 @@ In test files, a gutter icon appears next to `@Requirement("AUTH-001")` annotati
 9. **v1.0** — Maven Central publication, stable schema, production-ready
 
 ### Future considerations (post v1.0)
-- **Test generation** — given a `REQUIREMENT.yaml`, generate test method stubs pre-annotated with `@Requirement` IDs, one per requirement and corner case. Reduces the bootstrap cost of writing contract tests from scratch and ensures no requirement or corner case is missed. Natural fit for AI-assisted generation in the vibe coding workflow.
+- **Test generation** — given a `CONTRACT.yaml`, generate test method stubs pre-annotated with `@Requirement` IDs, one per requirement and corner case. Reduces the bootstrap cost of writing contract tests from scratch and ensures no requirement or corner case is missed. Natural fit for AI-assisted generation in the vibe coding workflow.
 
 ---
 

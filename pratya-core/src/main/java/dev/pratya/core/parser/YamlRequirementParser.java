@@ -14,7 +14,7 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 /**
- * Parses {@code REQUIREMENT.yaml} using SnakeYAML and maps to the domain model.
+ * Parses {@code CONTRACT.yaml} using SnakeYAML and maps to the domain model.
  */
 public class YamlRequirementParser implements RequirementParser {
 
