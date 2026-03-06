@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.AuthServiceTest" tests="4" failures="1" errors="1" skipped="0" time="0.123">
+    <testcase classname="com.example.AuthServiceTest" name="testLogin" time="0.030">
+    </testcase>
+    <testcase classname="com.example.AuthServiceTest" name="testLogout" time="0.015">
+    </testcase>
+    <testcase classname="com.example.AuthServiceTest" name="testInvalidPassword" time="0.020">
+        <failure message="Expected 401 but got 200" type="org.opentest4j.AssertionFailedError">
+            Expected 401 but got 200
+        </failure>
+    </testcase>
+    <testcase classname="com.example.AuthServiceTest" name="testNullUser" time="0.010">
+        <error message="NullPointerException" type="java.lang.NullPointerException">
+            java.lang.NullPointerException
+        </error>
+    </testcase>
+</testsuite>

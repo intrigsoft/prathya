@@ -31,6 +31,7 @@
         <jmustache.version>1.16</jmustache.version>
         <maven-plugin-api.version>3.9.6</maven-plugin-api.version>
         <maven-plugin-annotations.version>3.11.0</maven-plugin-annotations.version>
+        <maven-invoker.version>3.2.0</maven-invoker.version>
     </properties>
 
     <dependencyManagement>
@@ -80,6 +81,13 @@
                 <artifactId>maven-plugin-annotations</artifactId>
                 <version>${maven-plugin-annotations.version}</version>
                 <scope>provided</scope>
+            </dependency>
+
+            <!-- Maven Invoker -->
+            <dependency>
+                <groupId>org.apache.maven.shared</groupId>
+                <artifactId>maven-invoker</artifactId>
+                <version>${maven-invoker.version}</version>
             </dependency>
 
             <!-- Testing -->

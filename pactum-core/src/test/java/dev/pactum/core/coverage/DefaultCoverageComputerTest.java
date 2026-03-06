@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -107,6 +108,81 @@ class DefaultCoverageComputerTest {
 
         assertEquals(1, matrix.getSummary().getActiveRequirements());
         assertEquals(0, matrix.getSummary().getCoveredRequirements());
+    }
+
+    // --- three-state coverage tests ---
+
+    @Test
+    void threeStateAllPassing() {
+        ModuleContract contract = buildContract(
+                req("REQ-001", RequirementStatus.APPROVED, cc("REQ-001-CC-001"))
+        );
+
+        List<TraceEntry> traces = List.of(
+                trace("TestA", "test1", "REQ-001"),
+                trace("TestA", "test2", "REQ-001-CC-001")
+        );
+
+        TestRunResult testResults = new TestRunResult(List.of(
+                new TestMethodResult("TestA", "test1", TestMethodResult.TestOutcome.PASSED, null),
+                new TestMethodResult("TestA", "test2", TestMethodResult.TestOutcome.PASSED, null)
+        ));
+
+        CoverageMatrix matrix = computer.compute(contract, traces, testResults);
+
+        RequirementCoverage reqCov = matrix.getRequirements().get(0);
+        assertEquals(Boolean.TRUE, reqCov.getPassing());
+        assertEquals(Boolean.TRUE, reqCov.getCornerCases().get(0).getPassing());
+    }
+
+    @Test
+    void threeStateSomeFailing() {
+        ModuleContract contract = buildContract(
+                req("REQ-001", RequirementStatus.APPROVED, cc("REQ-001-CC-001"))
+        );
+
+        List<TraceEntry> traces = List.of(
+                trace("TestA", "test1", "REQ-001"),
+                trace("TestA", "test2", "REQ-001-CC-001")
+        );
+
+        TestRunResult testResults = new TestRunResult(List.of(
+                new TestMethodResult("TestA", "test1", TestMethodResult.TestOutcome.PASSED, null),
+                new TestMethodResult("TestA", "test2", TestMethodResult.TestOutcome.FAILED, "assertion failed")
+        ));
+
+        CoverageMatrix matrix = computer.compute(contract, traces, testResults);
+
+        RequirementCoverage reqCov = matrix.getRequirements().get(0);
+        assertEquals(Boolean.TRUE, reqCov.getPassing()); // req itself has passing test
+        assertEquals(Boolean.FALSE, reqCov.getCornerCases().get(0).getPassing()); // CC test failed
+    }
+
+    @Test
+    void threeStateUncoveredKeepsNull() {
+        ModuleContract contract = buildContract(
+                req("REQ-001", RequirementStatus.APPROVED)
+        );
+
+        TestRunResult testResults = new TestRunResult(Collections.emptyList());
+        CoverageMatrix matrix = computer.compute(contract, Collections.emptyList(), testResults);
+
+        RequirementCoverage reqCov = matrix.getRequirements().get(0);
+        assertNull(reqCov.getPassing());
+    }
+
+    @Test
+    void threeStateNullTestResultsDelegatesToTwoArg() {
+        ModuleContract contract = buildContract(
+                req("REQ-001", RequirementStatus.APPROVED)
+        );
+
+        List<TraceEntry> traces = List.of(trace("TestA", "test1", "REQ-001"));
+
+        CoverageMatrix matrix = computer.compute(contract, traces, null);
+
+        RequirementCoverage reqCov = matrix.getRequirements().get(0);
+        assertNull(reqCov.getPassing()); // two-arg always sets null
     }
 
     // --- helpers ---

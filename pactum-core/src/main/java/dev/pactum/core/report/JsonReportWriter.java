@@ -3,10 +3,7 @@ package dev.pactum.core.report;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import dev.pactum.core.model.CoverageMatrix;
-import dev.pactum.core.model.CornerCaseCoverage;
-import dev.pactum.core.model.RequirementCoverage;
-import dev.pactum.core.model.Violation;
+import dev.pactum.core.model.*;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -46,6 +43,12 @@ public class JsonReportWriter implements ReportWriter {
             ArrayNode tests = reqNode.putArray("tests");
             for (String test : req.getTests()) {
                 tests.add(test);
+            }
+
+            if (req.getPassing() == null) {
+                reqNode.putNull("passing");
+            } else {
+                reqNode.put("passing", req.getPassing());
             }
 
             ArrayNode cornerCases = reqNode.putArray("cornerCases");

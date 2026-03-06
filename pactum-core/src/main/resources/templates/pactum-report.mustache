@@ -24,6 +24,8 @@
         .badge.covered { background: #d4edda; color: #155724; }
         .badge.uncovered { background: #f8d7da; color: #721c24; }
         .badge.inactive { background: #e2e3e5; color: #6c757d; }
+        .badge.passing { background: #d4edda; color: #155724; }
+        .badge.failing { background: #f8d7da; color: #721c24; }
         .corner-cases { margin-top: 6px; padding-left: 16px; font-size: 0.85rem; color: #555; }
         .corner-cases li { margin: 2px 0; }
         .corner-cases .cc-covered { color: #155724; }
@@ -83,6 +85,8 @@
                     <td>
                         {{#covered}}<span class="badge covered">covered</span>{{/covered}}
                         {{#uncovered}}<span class="badge uncovered">uncovered</span>{{/uncovered}}
+                        {{#passing}}<span class="badge passing">passing</span>{{/passing}}
+                        {{#failing}}<span class="badge failing">failing</span>{{/failing}}
                     </td>
                     <td>{{testCount}}</td>
                     <td>

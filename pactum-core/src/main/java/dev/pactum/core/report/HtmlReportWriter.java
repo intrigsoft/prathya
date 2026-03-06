@@ -71,9 +71,11 @@ public class HtmlReportWriter implements ReportWriter {
             Map<String, Object> reqMap = new HashMap<>();
             reqMap.put("id", req.getId());
             reqMap.put("status", req.getStatus().name().toLowerCase());
-            reqMap.put("statusClass", statusClass(req.getStatus(), req.isCovered()));
+            reqMap.put("statusClass", statusClass(req.getStatus(), req.isCovered(), req.getPassing()));
             reqMap.put("covered", req.isCovered());
             reqMap.put("uncovered", !req.isCovered());
+            reqMap.put("passing", req.getPassing() != null && req.getPassing());
+            reqMap.put("failing", req.getPassing() != null && !req.getPassing());
             reqMap.put("testCount", req.getTests().size());
             reqMap.put("tests", req.getTests());
             reqMap.put("hasCornerCases", !req.getCornerCases().isEmpty());
@@ -112,9 +114,12 @@ public class HtmlReportWriter implements ReportWriter {
         return model;
     }
 
-    private String statusClass(RequirementStatus status, boolean covered) {
+    private String statusClass(RequirementStatus status, boolean covered, Boolean passing) {
         if (status == RequirementStatus.DEPRECATED || status == RequirementStatus.SUPERSEDED) {
             return "inactive";
+        }
+        if (passing != null) {
+            return passing ? "passing" : "failing";
         }
         return covered ? "covered" : "uncovered";
     }
