@@ -16,6 +16,7 @@
         <module>pratya-annotations</module>
         <module>pratya-core</module>
         <module>pratya-maven-plugin</module>
+        <module>pratya-gradle-plugin</module>
     </modules>
 
     <properties>
@@ -32,6 +33,7 @@
         <maven-plugin-api.version>3.9.6</maven-plugin-api.version>
         <maven-plugin-annotations.version>3.11.0</maven-plugin-annotations.version>
         <maven-invoker.version>3.2.0</maven-invoker.version>
+        <gradle-api.version>8.10</gradle-api.version>
     </properties>
 
     <dependencyManagement>
