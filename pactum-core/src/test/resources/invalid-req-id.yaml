@@ -1,0 +1,8 @@
+module:
+  id: AUTH
+  name: Auth Module
+
+requirements:
+  - id: auth_bad
+    title: Bad ID format
+    status: approved

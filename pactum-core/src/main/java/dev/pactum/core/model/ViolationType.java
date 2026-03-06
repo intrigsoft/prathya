@@ -1,0 +1,10 @@
+package dev.pactum.core.model;
+
+public enum ViolationType {
+    ORPHANED_ANNOTATION,
+    UNCOVERED_REQUIREMENT,
+    UNCOVERED_CORNER_CASE,
+    DEPRECATED_REFERENCE,
+    SUPERSEDED_REFERENCE,
+    COVERAGE_BELOW_THRESHOLD
+}
