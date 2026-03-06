@@ -33,6 +33,7 @@ class DefaultAuditEngineTest {
                 .filter(v -> v.getType() == ViolationType.ORPHANED_ANNOTATION).count());
         assertTrue(violations.stream()
                 .anyMatch(v -> v.getRequirementId().equals("REQ-999")));
+        assertEquals(Severity.ERROR, ViolationType.ORPHANED_ANNOTATION.getSeverity());
     }
 
     @Test
@@ -68,6 +69,7 @@ class DefaultAuditEngineTest {
         assertEquals(1, uncoveredCCs);
         assertTrue(violations.stream()
                 .anyMatch(v -> v.getCornerCaseId() != null && v.getCornerCaseId().equals("REQ-001-CC-002")));
+        assertEquals(Severity.WARN, ViolationType.UNCOVERED_CORNER_CASE.getSeverity());
     }
 
     @Test
@@ -83,6 +85,7 @@ class DefaultAuditEngineTest {
 
         assertEquals(1, violations.stream()
                 .filter(v -> v.getType() == ViolationType.DEPRECATED_REFERENCE).count());
+        assertEquals(Severity.WARN, ViolationType.DEPRECATED_REFERENCE.getSeverity());
     }
 
     @Test

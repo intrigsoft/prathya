@@ -32,6 +32,8 @@
         .violations h2 { color: #856404; margin-bottom: 12px; font-size: 1.1rem; }
         .violations table { box-shadow: none; margin-bottom: 0; }
         .violations th { background: #856404; }
+        .badge.severity-error { background: #f8d7da; color: #721c24; }
+        .badge.severity-warn { background: #fff3cd; color: #856404; }
         footer { text-align: center; padding: 20px; font-size: 0.8rem; color: #999; }
     </style>
 </head>
@@ -106,6 +108,7 @@
             <table>
                 <thead>
                     <tr>
+                        <th>Severity</th>
                         <th>Type</th>
                         <th>Requirement</th>
                         <th>Corner Case</th>
@@ -115,6 +118,7 @@
                 <tbody>
                     {{#violations}}
                     <tr>
+                        <td><span class="badge severity-{{severity}}">{{severity}}</span></td>
                         <td>{{type}}</td>
                         <td>{{requirementId}}</td>
                         <td>{{cornerCaseId}}</td>

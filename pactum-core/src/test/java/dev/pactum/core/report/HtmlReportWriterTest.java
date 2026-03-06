@@ -43,6 +43,8 @@ class HtmlReportWriterTest {
         assertTrue(html.contains("Violations"));
         assertTrue(html.contains("UNCOVERED_REQUIREMENT"));
         assertTrue(html.contains("No tests for AUTH-002"));
+        assertTrue(html.contains("severity-error"));
+        assertTrue(html.contains("error"));
     }
 
     @Test

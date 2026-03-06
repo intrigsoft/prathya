@@ -1,24 +1,19 @@
 package dev.pactum.maven;
 
 import dev.pactum.core.PactumException;
-import dev.pactum.core.model.Severity;
 import dev.pactum.core.report.HtmlReportWriter;
 import dev.pactum.core.report.JsonReportWriter;
 
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
-import org.apache.maven.plugins.annotations.Parameter;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-@Mojo(name = "verify", defaultPhase = LifecyclePhase.VERIFY, threadSafe = true)
-public class PactumVerifyMojo extends AbstractPactumMojo {
-
-    @Parameter(property = "pactum.failOnViolations", defaultValue = "true")
-    private boolean failOnViolations;
+@Mojo(name = "report", defaultPhase = LifecyclePhase.VERIFY, threadSafe = true)
+public class PactumReportMojo extends AbstractPactumMojo {
 
     @Override
     public void execute() throws MojoFailureException {
@@ -39,16 +34,6 @@ public class PactumVerifyMojo extends AbstractPactumMojo {
             // Log summary
             logSummary(result);
             getLog().info("  Reports: " + outputDir);
-
-            // Fail only on ERROR-severity violations
-            if (failOnViolations) {
-                long errorCount = result.violations().stream()
-                        .filter(v -> v.getType().getSeverity() == Severity.ERROR).count();
-                if (errorCount > 0) {
-                    throw new MojoFailureException(
-                            "Pactum verification failed with " + errorCount + " error violation(s)");
-                }
-            }
 
         } catch (PactumException e) {
             throw new MojoFailureException("Failed to parse REQUIREMENT.yaml: " + e.getMessage(), e);

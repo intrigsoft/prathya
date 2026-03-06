@@ -70,6 +70,7 @@ class JsonReportWriterTest {
         JsonNode violations = root.get("violations");
         assertEquals(1, violations.size());
         assertEquals("UNCOVERED_REQUIREMENT", violations.get(0).get("type").asText());
+        assertEquals("error", violations.get(0).get("severity").asText());
         assertEquals("AUTH-002", violations.get(0).get("requirementId").asText());
         assertTrue(violations.get(0).get("cornerCaseId").isNull());
     }

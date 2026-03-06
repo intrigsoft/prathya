@@ -66,6 +66,7 @@ public class JsonReportWriter implements ReportWriter {
         for (Violation v : violations) {
             ObjectNode vNode = violationsArray.addObject();
             vNode.put("type", v.getType().name());
+            vNode.put("severity", v.getType().getSeverity().name().toLowerCase());
             vNode.put("requirementId", v.getRequirementId());
             if (v.getCornerCaseId() == null) {
                 vNode.putNull("cornerCaseId");

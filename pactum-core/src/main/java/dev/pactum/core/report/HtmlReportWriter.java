@@ -6,6 +6,7 @@ import dev.pactum.core.model.CoverageMatrix;
 import dev.pactum.core.model.CornerCaseCoverage;
 import dev.pactum.core.model.RequirementCoverage;
 import dev.pactum.core.model.RequirementStatus;
+import dev.pactum.core.model.Severity;
 import dev.pactum.core.model.Violation;
 
 import java.io.IOException;
@@ -98,6 +99,9 @@ public class HtmlReportWriter implements ReportWriter {
         for (Violation v : violations) {
             Map<String, Object> vMap = new HashMap<>();
             vMap.put("type", v.getType().name());
+            vMap.put("severity", v.getType().getSeverity().name().toLowerCase());
+            vMap.put("isError", v.getType().getSeverity() == Severity.ERROR);
+            vMap.put("isWarn", v.getType().getSeverity() == Severity.WARN);
             vMap.put("requirementId", v.getRequirementId());
             vMap.put("cornerCaseId", v.getCornerCaseId());
             vMap.put("message", v.getMessage());
