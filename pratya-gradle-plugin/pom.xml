@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>io.pratya</groupId>
+        <artifactId>pratya</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>pratya-gradle-plugin</artifactId>
+    <!--
+        The Gradle plugin is built by Gradle itself (java-gradle-plugin).
+        Maven acts as the outer coordinator: it delegates to Gradle via the
+        exec-maven-plugin and then installs the produced JAR.
+    -->
+    <packaging>pom</packaging>
+
+    <name>pratya-gradle-plugin</name>
+    <description>Gradle plugin for running pratya verifications during the build lifecycle</description>
+
+    <build>
+        <plugins>
+            <!--
+                Delegate the build to Gradle.  The `build.gradle.kts` in this
+                module's directory defines the actual Gradle plugin project.
+            -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>gradle-build</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>gradle</executable>
+                            <workingDirectory>${project.basedir}</workingDirectory>
+                            <arguments>
+                                <argument>build</argument>
+                                <argument>--warning-mode=none</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

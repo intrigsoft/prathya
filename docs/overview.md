@@ -1,12 +1,12 @@
-# Pactum — Contract-Driven Requirement Coverage for Java
+# Pratya — Contract-Driven Requirement Coverage for Java
 
 ## Overview
 
-Pactum is an open-source Java tool that brings formal requirement traceability to software testing. It treats requirements as first-class, versioned artifacts, links tests to those requirements via annotations, and measures **requirement coverage** — a more meaningful quality signal than code coverage alone.
+Pratya is an open-source Java tool that brings formal requirement traceability to software testing. It treats requirements as first-class, versioned artifacts, links tests to those requirements via annotations, and measures **requirement coverage** — a more meaningful quality signal than code coverage alone.
 
 The core insight: code coverage tells you what was _touched_. Requirement coverage tells you whether _intent_ was verified.
 
-Pactum is designed to sit alongside JaCoCo in the Java build lifecycle. Used together, the two metrics expose a quadrant of insights:
+Pratya is designed to sit alongside JaCoCo in the Java build lifecycle. Used together, the two metrics expose a quadrant of insights:
 
 | | Code Coverage High | Code Coverage Low |
 |---|---|---|
@@ -24,7 +24,7 @@ Every module has a `REQUIREMENT.yaml` file that defines its behavioral contract.
 Test methods are annotated with `@Requirement("REQ-ID")` to declare what requirement or corner case they verify. This is the only coupling between test code and requirements.
 
 ### Requirement Coverage
-Pactum scans annotations at build time, cross-references them against `REQUIREMENT.yaml`, and computes a coverage matrix. It produces an HTML report and a machine-readable JSON for CI integration.
+Pratya scans annotations at build time, cross-references them against `REQUIREMENT.yaml`, and computes a coverage matrix. It produces an HTML report and a machine-readable JSON for CI integration.
 
 ### No Manual Trace File
 The trace is derived from annotations at build time — no manually maintained mapping file is needed. The annotations _are_ the trace. This keeps the maintenance burden minimal.
@@ -163,7 +163,7 @@ requirements:
 ## Annotation Usage
 
 ```java
-import dev.pactum.annotations.Requirement;
+import dev.pratya.annotations.Requirement;
 
 class AuthServiceTest {
 
@@ -194,13 +194,13 @@ One test can cover multiple requirements or corner cases. One requirement can be
 ## Project Structure
 
 ```
-pactum/
-├── pactum-annotations/          # @Requirement annotation only — minimal JAR, no transitive deps
-├── pactum-core/                 # Domain model, YAML parser, coverage computation, reporting
-├── pactum-maven-plugin/         # Maven lifecycle integration
-├── pactum-gradle-plugin/        # Gradle task integration (second target)
-├── pactum-intellij-plugin/      # IntelliJ IDEA plugin — authoring UI, gutter icons, validation
-└── pactum-examples/             # Example Java project demonstrating usage
+pratya/
+├── pratya-annotations/          # @Requirement annotation only — minimal JAR, no transitive deps
+├── pratya-core/                 # Domain model, YAML parser, coverage computation, reporting
+├── pratya-maven-plugin/         # Maven lifecycle integration
+├── pratya-gradle-plugin/        # Gradle task integration (second target)
+├── pratya-intellij-plugin/      # IntelliJ IDEA plugin — authoring UI, gutter icons, validation
+└── pratya-examples/             # Example Java project demonstrating usage
 ```
 
 ### Parent POM
@@ -210,12 +210,12 @@ All modules share a parent `pom.xml` for version management. Published to Maven 
 
 ## Module Details
 
-### `pactum-annotations`
+### `pratya-annotations`
 
 A minimal JAR containing only the `@Requirement` annotation. Kept separate so test code has a lightweight dependency.
 
 ```java
-package dev.pactum.annotations;
+package dev.pratya.annotations;
 
 import java.lang.annotation.*;
 
@@ -237,7 +237,7 @@ public @interface Requirement {
 
 ---
 
-### `pactum-core`
+### `pratya-core`
 
 The framework-agnostic engine. Contains:
 
@@ -258,7 +258,7 @@ The framework-agnostic engine. Contains:
 
 ```java
 public interface RequirementParser {
-    ModuleContract parse(Path requirementYaml) throws PactumException;
+    ModuleContract parse(Path requirementYaml) throws PratyaException;
 }
 
 public interface AnnotationScanner {
@@ -271,7 +271,7 @@ public interface CoverageReporter {
     void writeJsonReport(CoverageMatrix matrix, Path outputFile);
 }
 
-public interface PactumTestRunner {
+public interface PratyaTestRunner {
     // Resolves which test methods are mapped to active requirements in the contract
     List<TestMethod> resolveTests(ModuleContract contract, List<TraceEntry> traces);
     // Parses standard Surefire XML reports and maps results back to requirements
@@ -281,26 +281,26 @@ public interface PactumTestRunner {
 
 ---
 
-### `pactum-maven-plugin`
+### `pratya-maven-plugin`
 
 Hooks into the Maven `verify` phase (after `test` phase completes).
 
 **Plugin coordinates:**
 ```xml
-<groupId>dev.pactum</groupId>
-<artifactId>pactum-maven-plugin</artifactId>
+<groupId>dev.pratya</groupId>
+<artifactId>pratya-maven-plugin</artifactId>
 ```
 
 **Usage in project `pom.xml`:**
 ```xml
 <plugin>
-    <groupId>dev.pactum</groupId>
-    <artifactId>pactum-maven-plugin</artifactId>
+    <groupId>dev.pratya</groupId>
+    <artifactId>pratya-maven-plugin</artifactId>
     <version>1.0.0</version>
     <configuration>
         <requirementFile>${project.basedir}/REQUIREMENT.yaml</requirementFile>
         <testClassesDirectory>${project.build.testOutputDirectory}</testClassesDirectory>
-        <outputDirectory>${project.build.directory}/pactum</outputDirectory>
+        <outputDirectory>${project.build.directory}/pratya</outputDirectory>
         <failOnViolations>true</failOnViolations>
         <minimumRequirementCoverage>80</minimumRequirementCoverage>  <!-- percentage -->
         <excludeStatuses>
@@ -319,10 +319,10 @@ Hooks into the Maven `verify` phase (after `test` phase completes).
 ```
 
 **Plugin goals:**
-- `pactum:verify` — full scan, coverage computation, report generation, optional build failure
-- `pactum:run` — resolves tests mapped to active requirements, executes them via Surefire, computes coverage from results
-- `pactum:report` — report only, no build failure gate
-- `pactum:audit` — prints violations to console only
+- `pratya:verify` — full scan, coverage computation, report generation, optional build failure
+- `pratya:run` — resolves tests mapped to active requirements, executes them via Surefire, computes coverage from results
+- `pratya:report` — report only, no build failure gate
+- `pratya:audit` — prints violations to console only
 
 **Maven lifecycle binding:** `verify` phase (after `test`).
 
@@ -330,13 +330,13 @@ Hooks into the Maven `verify` phase (after `test` phase completes).
 
 ---
 
-## Focused Test Runner (`pactum:run`)
+## Focused Test Runner (`pratya:run`)
 
-The `pactum:run` goal shifts Pactum from **passive measurement** to **active execution**. It is a standalone orchestrator — it does not implement a test runner itself. Instead it delegates entirely to Surefire as a black box, using its existing inputs and outputs.
+The `pratya:run` goal shifts Pratya from **passive measurement** to **active execution**. It is a standalone orchestrator — it does not implement a test runner itself. Instead it delegates entirely to Surefire as a black box, using its existing inputs and outputs.
 
 ### Surefire-only initially
 
-For simplicity and reliability in the initial implementation, `pactum:run` uses Surefire exclusively — all tests annotated with `@Requirement` are executed via `mvn test`, regardless of whether they are unit or integration tests. This removes the need to classify tests by type, manage multiple runners, or deal with Failsafe lifecycle semantics.
+For simplicity and reliability in the initial implementation, `pratya:run` uses Surefire exclusively — all tests annotated with `@Requirement` are executed via `mvn test`, regardless of whether they are unit or integration tests. This removes the need to classify tests by type, manage multiple runners, or deal with Failsafe lifecycle semantics.
 
 The practical implication: teams place `@Requirement`-annotated tests in standard `*Test.java` classes picked up by Surefire. The convention is simple and universal. Failsafe support is a later milestone once the core flow is proven.
 
@@ -352,7 +352,7 @@ The practical implication: teams place `@Requirement`-annotated tests in standar
 8. Map results back to requirement IDs via the annotation trace
 9. Compute three-state coverage and generate report
 
-Pactum never touches test execution itself. Surefire runs tests exactly as it always does — Pactum just tells it which ones to run and reads the output.
+Pratya never touches test execution itself. Surefire runs tests exactly as it always does — Pratya just tells it which ones to run and reads the output.
 
 ### Three-state coverage model
 
@@ -365,17 +365,17 @@ This is more informative than a simple covered/uncovered binary. A covered+faili
 
 ### Standalone usage
 
-Because `pactum:run` uses Maven Invoker, it can be invoked standalone from the command line without being bound to any lifecycle phase.
+Because `pratya:run` uses Maven Invoker, it can be invoked standalone from the command line without being bound to any lifecycle phase.
 
 ```bash
 # Run all contract tests for approved requirements
-mvn pactum:run
+mvn pratya:run
 
 # Run tests for a specific requirement only
-mvn pactum:run -Dpactum.requirementId=AUTH-001
+mvn pratya:run -Dpratya.requirementId=AUTH-001
 
 # Run tests for a specific module
-mvn pactum:run -Dpactum.moduleId=AUTH
+mvn pratya:run -Dpratya.moduleId=AUTH
 ```
 
 ### Filtering options
@@ -388,7 +388,7 @@ mvn pactum:run -Dpactum.moduleId=AUTH
     <!-- Run tests for all approved requirements (default) -->
     <statusFilter>approved</statusFilter>
 
-    <!-- Fail the pactum:run goal if any mapped test fails -->
+    <!-- Fail the pratya:run goal if any mapped test fails -->
     <failOnTestFailure>true</failOnTestFailure>
 
     <!-- Directory to read Surefire XML reports from -->
@@ -398,7 +398,7 @@ mvn pactum:run -Dpactum.moduleId=AUTH
 
 ### Key implementation note
 
-The `PactumTestRunner` interface in `pactum-core` is intentionally decoupled from Maven Invoker. Core only defines the contract — the Maven plugin provides the Invoker-based implementation. This keeps `pactum-core` framework-agnostic and leaves the door open for Failsafe support later without a redesign.
+The `PratyaTestRunner` interface in `pratya-core` is intentionally decoupled from Maven Invoker. Core only defines the contract — the Maven plugin provides the Invoker-based implementation. This keeps `pratya-core` framework-agnostic and leaves the door open for Failsafe support later without a redesign.
 
 ---
 
@@ -413,7 +413,7 @@ JaCoCo-inspired layout, rendered via JMustache templates embedded as classpath r
 - **Drill-down** — click a requirement to see mapped test methods and which corner cases are covered vs missing
 - **Supersession chain** — deprecated/superseded requirements shown with links to successors
 
-### JSON Report (`pactum-report.json`)
+### JSON Report (`pratya-report.json`)
 Machine-readable. Intended for CI dashboards and quality gates.
 
 ```json
@@ -472,13 +472,13 @@ This mirrors JaCoCo's minimum coverage gate pattern, which teams already underst
 
 For multi-module Maven projects, `REQUIREMENT.yaml` lives at the module level. Each module has its own contract. The parent build aggregates reports from all child modules into a top-level coverage summary.
 
-Aggregation is handled by a separate `pactum:aggregate` goal bound to the parent POM's `verify` phase.
+Aggregation is handled by a separate `pratya:aggregate` goal bound to the parent POM's `verify` phase.
 
 ---
 
 ## Audit Rules
 
-The `pactum:audit` goal checks for and reports:
+The `pratya:audit` goal checks for and reports:
 
 | Rule | Severity |
 |---|---|
@@ -493,7 +493,7 @@ The `pactum:audit` goal checks for and reports:
 
 ---
 
-## `pactum-intellij-plugin`
+## `pratya-intellij-plugin`
 
 A quality-of-life layer on top of the core tool. The underlying format stays YAML — the plugin just makes authoring and reviewing it human-friendly. Built after the schema stabilises (post v0.6) so the plugin doesn't have to track schema churn.
 
@@ -513,7 +513,7 @@ When an existing requirement is edited, the plugin detects change severity and p
 - Duplicate IDs detected on save
 
 ### Traceability gutter icons
-In test files, a gutter icon appears next to `@Requirement("AUTH-001")` annotations. Hovering shows the requirement title and description inline. Clicking navigates to the requirement in REQUIREMENT.yaml. The reverse works too — the requirement panel shows which test methods are mapped to each requirement and their current pass/fail state from the last `pactum:run` execution.
+In test files, a gutter icon appears next to `@Requirement("AUTH-001")` annotations. Hovering shows the requirement title and description inline. Clicking navigates to the requirement in REQUIREMENT.yaml. The reverse works too — the requirement panel shows which test methods are mapped to each requirement and their current pass/fail state from the last `pratya:run` execution.
 
 **Distribution:** JetBrains Marketplace.
 
@@ -521,14 +521,14 @@ In test files, a gutter icon appears next to `@Requirement("AUTH-001")` annotati
 
 ## Roadmap
 
-1. **v0.1** — `pactum-annotations` + `pactum-core` (parser, scanner, coverage computation)
-2. **v0.2** — `pactum-maven-plugin` — `pactum:verify` goal, HTML + JSON report via JMustache
+1. **v0.1** — `pratya-annotations` + `pratya-core` (parser, scanner, coverage computation)
+2. **v0.2** — `pratya-maven-plugin` — `pratya:verify` goal, HTML + JSON report via JMustache
 3. **v0.3** — CI gate (fail build on violations, minimum coverage threshold)
-4. **v0.4** — `pactum:run` focused test runner — Surefire-based, three-state coverage
-5. **v0.5** — Failsafe support in `pactum:run` for integration test execution
-6. **v0.6** — Multi-module aggregation (`pactum:aggregate`)
-7. **v0.7** — `pactum-gradle-plugin`
-8. **v0.8** — `pactum-intellij-plugin` — requirement authoring UI, traceability gutter icons, validation
+4. **v0.4** — `pratya:run` focused test runner — Surefire-based, three-state coverage
+5. **v0.5** — Failsafe support in `pratya:run` for integration test execution
+6. **v0.6** — Multi-module aggregation (`pratya:aggregate`)
+7. **v0.7** — `pratya-gradle-plugin`
+8. **v0.8** — `pratya-intellij-plugin` — requirement authoring UI, traceability gutter icons, validation
 9. **v1.0** — Maven Central publication, stable schema, production-ready
 
 ### Future considerations (post v1.0)

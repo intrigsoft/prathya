@@ -4,18 +4,18 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>dev.pactum</groupId>
-    <artifactId>pactum</artifactId>
+    <groupId>dev.pratya</groupId>
+    <artifactId>pratya</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
-    <name>pactum</name>
+    <name>pratya</name>
     <description>Contract-driven requirement coverage for Java</description>
 
     <modules>
-        <module>pactum-annotations</module>
-        <module>pactum-core</module>
-        <module>pactum-maven-plugin</module>
+        <module>pratya-annotations</module>
+        <module>pratya-core</module>
+        <module>pratya-maven-plugin</module>
     </modules>
 
     <properties>
@@ -36,15 +36,15 @@
 
     <dependencyManagement>
         <dependencies>
-            <!-- pactum modules -->
+            <!-- pratya modules -->
             <dependency>
-                <groupId>dev.pactum</groupId>
-                <artifactId>pactum-annotations</artifactId>
+                <groupId>dev.pratya</groupId>
+                <artifactId>pratya-annotations</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>dev.pactum</groupId>
-                <artifactId>pactum-core</artifactId>
+                <groupId>dev.pratya</groupId>
+                <artifactId>pratya-core</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
