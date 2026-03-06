@@ -1,5 +1,6 @@
 package dev.pactum.core.model;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -35,6 +36,14 @@ public class TestRunResult {
     public boolean isAllPassing() {
         return !results.isEmpty() && results.stream()
                 .allMatch(r -> r.getOutcome() == TestMethodResult.TestOutcome.PASSED);
+    }
+
+    public static TestRunResult merge(TestRunResult... results) {
+        List<TestMethodResult> all = new ArrayList<>();
+        for (TestRunResult r : results) {
+            all.addAll(r.getResults());
+        }
+        return new TestRunResult(all);
     }
 
     public Map<String, TestMethodResult> toResultMap() {

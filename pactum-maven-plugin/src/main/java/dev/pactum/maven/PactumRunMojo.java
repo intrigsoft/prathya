@@ -11,6 +11,8 @@ import dev.pactum.core.report.JsonReportWriter;
 import dev.pactum.core.runner.DefaultPactumTestRunner;
 import dev.pactum.core.runner.PactumTestRunner;
 import dev.pactum.core.runner.SurefireFilterBuilder;
+import dev.pactum.core.runner.TestClassifier;
+import dev.pactum.core.runner.TestScope;
 import dev.pactum.core.scanner.ReflectionAnnotationScanner;
 
 import org.apache.maven.plugin.MojoFailureException;
@@ -25,6 +27,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -40,8 +43,17 @@ public class PactumRunMojo extends AbstractPactumMojo {
     @Parameter(property = "pactum.failOnTestFailure", defaultValue = "true")
     private boolean failOnTestFailure;
 
+    @Parameter(property = "pactum.testScope", defaultValue = "unit")
+    private String testScope;
+
     @Parameter(defaultValue = "${project.build.directory}/surefire-reports", readonly = true)
     private String surefireReportsDirectory;
+
+    @Parameter(defaultValue = "${project.build.directory}/failsafe-reports", readonly = true)
+    private String failsafeReportsDirectory;
+
+    @Parameter(property = "pactum.integrationTestPatterns")
+    private List<String> integrationTestPatterns;
 
     @Parameter(defaultValue = "${project.basedir}", readonly = true)
     private File projectBasedir;
@@ -84,16 +96,70 @@ public class PactumRunMojo extends AbstractPactumMojo {
                 return;
             }
 
-            // 5. Build Surefire filter
-            String filter = SurefireFilterBuilder.build(tests);
-            getLog().info("Running " + tests.size() + " test(s): " + filter);
+            // 5. Classify and execute by scope
+            TestScope scope = TestScope.fromString(testScope);
+            TestClassifier classifier = (integrationTestPatterns != null && !integrationTestPatterns.isEmpty())
+                    ? new TestClassifier(integrationTestPatterns)
+                    : new TestClassifier();
 
-            // 6. Invoke mvn test
-            invokeMavenTest(filter);
+            TestRunResult testRunResult;
 
-            // 7. Parse results
-            Path reportsDir = Path.of(surefireReportsDirectory);
-            TestRunResult testRunResult = runner.parseResults(reportsDir, tests);
+            if (scope == TestScope.UNIT) {
+                List<TestMethod> unitTests = classifier.filter(tests, TestScope.UNIT);
+                if (unitTests.isEmpty()) {
+                    getLog().info("No unit tests to run.");
+                    return;
+                }
+                String filter = SurefireFilterBuilder.build(unitTests);
+                getLog().info("Running " + unitTests.size() + " unit test(s): " + filter);
+                invokeMaven("test", "-Dtest=" + filter);
+                testRunResult = runner.parseResults(Path.of(surefireReportsDirectory), unitTests);
+
+            } else if (scope == TestScope.INTEGRATION) {
+                List<TestMethod> itTests = classifier.filter(tests, TestScope.INTEGRATION);
+                if (itTests.isEmpty()) {
+                    getLog().info("No integration tests to run.");
+                    return;
+                }
+                String filter = SurefireFilterBuilder.build(itTests);
+                getLog().info("Running " + itTests.size() + " integration test(s): " + filter);
+                invokeMaven("failsafe:integration-test", "-Dit.test=" + filter);
+                testRunResult = runner.parseResults(Path.of(failsafeReportsDirectory), itTests);
+
+            } else {
+                // ALL — partition and run both
+                Map<TestScope, List<TestMethod>> partitioned = classifier.partition(tests);
+                List<TestMethod> unitTests = partitioned.getOrDefault(TestScope.UNIT, Collections.emptyList());
+                List<TestMethod> itTests = partitioned.getOrDefault(TestScope.INTEGRATION, Collections.emptyList());
+
+                TestRunResult unitResult = null;
+                TestRunResult itResult = null;
+
+                if (!unitTests.isEmpty()) {
+                    String unitFilter = SurefireFilterBuilder.build(unitTests);
+                    getLog().info("Running " + unitTests.size() + " unit test(s): " + unitFilter);
+                    invokeMaven("test", "-Dtest=" + unitFilter);
+                    unitResult = runner.parseResults(Path.of(surefireReportsDirectory), unitTests);
+                }
+
+                if (!itTests.isEmpty()) {
+                    String itFilter = SurefireFilterBuilder.build(itTests);
+                    getLog().info("Running " + itTests.size() + " integration test(s): " + itFilter);
+                    invokeMaven("failsafe:integration-test", "-Dit.test=" + itFilter);
+                    itResult = runner.parseResults(Path.of(failsafeReportsDirectory), itTests);
+                }
+
+                if (unitResult != null && itResult != null) {
+                    testRunResult = TestRunResult.merge(unitResult, itResult);
+                } else if (unitResult != null) {
+                    testRunResult = unitResult;
+                } else if (itResult != null) {
+                    testRunResult = itResult;
+                } else {
+                    getLog().info("No tests to run for scope ALL.");
+                    return;
+                }
+            }
 
             getLog().info(String.format("Test results: %d total, %d passed, %d failed, %d errors, %d skipped",
                     testRunResult.getTotalTests(), testRunResult.getPassed(),
@@ -152,11 +218,11 @@ public class PactumRunMojo extends AbstractPactumMojo {
         }
     }
 
-    private void invokeMavenTest(String testFilter) throws MavenInvocationException {
+    private void invokeMaven(String goal, String filterArg) throws MavenInvocationException {
         InvocationRequest request = new DefaultInvocationRequest();
         request.setPomFile(new File(projectBasedir, "pom.xml"));
-        request.setGoals(Collections.singletonList("test"));
-        request.addArg("-Dtest=" + testFilter);
+        request.setGoals(Collections.singletonList(goal));
+        request.addArg(filterArg);
         request.setBatchMode(true);
 
         Invoker invoker = new DefaultInvoker();
@@ -168,7 +234,7 @@ public class PactumRunMojo extends AbstractPactumMojo {
         // Do NOT throw on non-zero exit — tests may fail, which is expected.
         // The test results will be parsed from XML reports.
         if (result.getExitCode() != 0) {
-            getLog().warn("Maven test execution exited with code " + result.getExitCode());
+            getLog().warn("Maven " + goal + " execution exited with code " + result.getExitCode());
         }
     }
 }
