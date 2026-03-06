@@ -84,7 +84,8 @@ public class PratyaRunMojo extends AbstractPratyaMojo {
 
             // 3. Scan annotations
             Path testDir = Path.of(testClassesDirectory);
-            List<TraceEntry> traces = new ReflectionAnnotationScanner().scan(List.of(testDir));
+            Path classesDir = Path.of(classesDirectory);
+            List<TraceEntry> traces = new ReflectionAnnotationScanner().scan(List.of(testDir), List.of(classesDir));
 
             // 4. Resolve tests
             PratyaTestRunner runner = new DefaultPratyaTestRunner();

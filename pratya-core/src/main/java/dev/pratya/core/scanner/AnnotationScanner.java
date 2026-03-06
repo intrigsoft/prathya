@@ -11,4 +11,12 @@ import java.util.List;
 public interface AnnotationScanner {
 
     List<TraceEntry> scan(List<Path> testClassDirectories);
+
+    /**
+     * Scans test class directories for annotations, with additional classpath
+     * entries available for class resolution (e.g. production classes).
+     */
+    default List<TraceEntry> scan(List<Path> testClassDirectories, List<Path> additionalClasspath) {
+        return scan(testClassDirectories);
+    }
 }

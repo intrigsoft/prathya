@@ -27,6 +27,9 @@ public abstract class AbstractPratyaMojo extends AbstractMojo {
     @Parameter(property = "pratya.contractFile", defaultValue = "${project.basedir}/CONTRACT.yaml")
     protected String contractFile;
 
+    @Parameter(property = "pratya.classesDirectory", defaultValue = "${project.build.outputDirectory}")
+    protected String classesDirectory;
+
     @Parameter(property = "pratya.testClassesDirectory", defaultValue = "${project.build.testOutputDirectory}")
     protected String testClassesDirectory;
 
@@ -64,7 +67,8 @@ public abstract class AbstractPratyaMojo extends AbstractMojo {
         // 3. Scan
         AnnotationScanner scanner = new ReflectionAnnotationScanner();
         Path testDir = Path.of(testClassesDirectory);
-        List<TraceEntry> traces = scanner.scan(List.of(testDir));
+        Path classesDir = Path.of(classesDirectory);
+        List<TraceEntry> traces = scanner.scan(List.of(testDir), List.of(classesDir));
 
         // 4. Compute coverage
         CoverageComputer coverageComputer = new DefaultCoverageComputer();

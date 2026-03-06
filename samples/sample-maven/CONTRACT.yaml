@@ -1,0 +1,68 @@
+module:
+  id: ORD
+  name: Order Service
+  description: Handles order creation, validation, and lifecycle management
+  owner: orders-team@example.com
+  created: 2026-03-01
+  version: 1.0.0
+
+requirements:
+
+  - id: ORD-001
+    version: 1.0.0
+    status: approved
+    title: Create order with valid items
+    description: >
+      The system must create an order when given a non-empty list of items,
+      each with a positive quantity and valid price.
+    acceptance_criteria:
+      - Order is persisted with status PENDING
+      - Order total is computed as sum of item price * quantity
+      - Order ID is generated and returned
+    corner_cases:
+      - id: ORD-001-CC-001
+        description: Empty item list — must reject with IllegalArgumentException
+      - id: ORD-001-CC-002
+        description: Item with zero quantity — must reject
+      - id: ORD-001-CC-003
+        description: Item with negative price — must reject
+    changelog:
+      - version: 1.0.0
+        date: 2026-03-01
+        note: Initial definition
+
+  - id: ORD-002
+    version: 1.0.0
+    status: approved
+    title: Cancel a pending order
+    description: >
+      The system must allow cancellation of an order that is in PENDING status.
+      Orders in other statuses cannot be cancelled.
+    acceptance_criteria:
+      - PENDING order transitions to CANCELLED
+      - Non-PENDING order throws IllegalStateException
+    corner_cases:
+      - id: ORD-002-CC-001
+        description: Cancel an already cancelled order — must throw IllegalStateException
+    changelog:
+      - version: 1.0.0
+        date: 2026-03-01
+        note: Initial definition
+
+  - id: ORD-003
+    version: 1.0.0
+    status: approved
+    title: Compute order total
+    description: >
+      The system must correctly compute the total for an order as the sum
+      of (item price * quantity) across all line items.
+    acceptance_criteria:
+      - Total is computed correctly for multiple items
+      - Total for a single item equals price * quantity
+    corner_cases:
+      - id: ORD-003-CC-001
+        description: Order with a single item — total equals that item's subtotal
+    changelog:
+      - version: 1.0.0
+        date: 2026-03-01
+        note: Initial definition

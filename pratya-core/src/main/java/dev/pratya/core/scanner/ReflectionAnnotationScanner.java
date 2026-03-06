@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Scans compiled test class directories via reflection to find {@code @Requirement} annotations.
@@ -21,9 +22,14 @@ public class ReflectionAnnotationScanner implements AnnotationScanner {
 
     @Override
     public List<TraceEntry> scan(List<Path> testClassDirectories) {
+        return scan(testClassDirectories, List.of());
+    }
+
+    @Override
+    public List<TraceEntry> scan(List<Path> testClassDirectories, List<Path> additionalClasspath) {
         List<TraceEntry> entries = new ArrayList<>();
 
-        URL[] urls = testClassDirectories.stream()
+        URL[] urls = Stream.concat(testClassDirectories.stream(), additionalClasspath.stream())
                 .map(p -> {
                     try {
                         return p.toUri().toURL();
@@ -79,7 +85,14 @@ public class ReflectionAnnotationScanner implements AnnotationScanner {
             return; // skip classes that can't be loaded
         }
 
-        for (Method method : clazz.getDeclaredMethods()) {
+        Method[] methods;
+        try {
+            methods = clazz.getDeclaredMethods();
+        } catch (NoClassDefFoundError e) {
+            return; // skip classes whose method signatures can't be resolved
+        }
+
+        for (Method method : methods) {
             List<String> allIds = new ArrayList<>();
 
             // Check for single @Requirement

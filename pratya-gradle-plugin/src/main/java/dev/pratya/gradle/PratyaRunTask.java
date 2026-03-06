@@ -79,7 +79,8 @@ public abstract class PratyaRunTask extends AbstractPratyaTask {
             }
 
             // 3. Scan annotations
-            List<TraceEntry> traces = new ReflectionAnnotationScanner().scan(List.of(testDir));
+            Path classesDir = getClassesDir().getAsFile().get().toPath();
+            List<TraceEntry> traces = new ReflectionAnnotationScanner().scan(List.of(testDir), List.of(classesDir));
 
             // 4. Resolve tests
             PratyaTestRunner runner = new DefaultPratyaTestRunner();

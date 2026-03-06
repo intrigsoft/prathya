@@ -9,6 +9,8 @@ public abstract class PratyaExtension {
 
     public abstract RegularFileProperty getContractFile();
 
+    public abstract DirectoryProperty getClassesDir();
+
     public abstract DirectoryProperty getTestClassesDir();
 
     public abstract DirectoryProperty getOutputDir();

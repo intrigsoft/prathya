@@ -28,6 +28,8 @@ public abstract class AbstractPratyaTask extends DefaultTask {
 
     public abstract RegularFileProperty getContractFile();
 
+    public abstract DirectoryProperty getClassesDir();
+
     public abstract DirectoryProperty getTestClassesDir();
 
     public abstract DirectoryProperty getOutputDir();
@@ -60,7 +62,8 @@ public abstract class AbstractPratyaTask extends DefaultTask {
 
         // 3. Scan
         AnnotationScanner scanner = new ReflectionAnnotationScanner();
-        List<TraceEntry> traces = scanner.scan(List.of(testDir));
+        Path classesDir = getClassesDir().getAsFile().get().toPath();
+        List<TraceEntry> traces = scanner.scan(List.of(testDir), List.of(classesDir));
 
         // 4. Compute coverage
         CoverageComputer coverageComputer = new DefaultCoverageComputer();

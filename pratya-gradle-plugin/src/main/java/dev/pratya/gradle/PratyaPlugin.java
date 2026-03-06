@@ -14,6 +14,8 @@ public class PratyaPlugin implements Plugin<Project> {
         // Set extension defaults
         extension.getContractFile().convention(
                 project.getLayout().getProjectDirectory().file("CONTRACT.yaml"));
+        extension.getClassesDir().convention(
+                project.getLayout().getBuildDirectory().dir("classes/java/main"));
         extension.getTestClassesDir().convention(
                 project.getLayout().getBuildDirectory().dir("classes/java/test"));
         extension.getOutputDir().convention(
@@ -94,6 +96,7 @@ public class PratyaPlugin implements Plugin<Project> {
 
     private void wireCommonProperties(AbstractPratyaTask task, PratyaExtension extension) {
         task.getContractFile().convention(extension.getContractFile());
+        task.getClassesDir().convention(extension.getClassesDir());
         task.getTestClassesDir().convention(extension.getTestClassesDir());
         task.getOutputDir().convention(extension.getOutputDir());
         task.getExcludeStatuses().convention(extension.getExcludeStatuses());

@@ -4,6 +4,12 @@
 
 Pratya is an open-source Java tool that brings formal requirement traceability to software testing. It treats requirements as first-class, versioned artifacts, links tests to those requirements via annotations, and measures **requirement coverage** — a more meaningful quality signal than code coverage alone.
 
+Pratya introduces **Contract-Driven Development (CDD)** as a natural companion to established methodologies:
+
+- **TDD** — write the test first, then the code. Drives implementation but says nothing about whether the tests are the *right* tests.
+- **BDD** — write behavior specifications in natural language. Improves communication but doesn't enforce traceability, versioning, or coverage measurement against a formal contract.
+- **CDD** — define the contract first. Tests are written against the contract. Coverage is measured against the contract. The contract is the source of truth — not the code, not the tests, not a ticket in a project management tool.
+
 The core insight: code coverage tells you what was _touched_. Requirement coverage tells you whether _intent_ was verified.
 
 Pratya is designed to sit alongside JaCoCo in the Java build lifecycle. Used together, the two metrics expose a quadrant of insights:
@@ -495,27 +501,60 @@ The `pratya:audit` goal checks for and reports:
 
 ## `pratya-intellij-plugin`
 
-A quality-of-life layer on top of the core tool. The underlying format stays YAML — the plugin just makes authoring and reviewing it human-friendly. Built after the schema stabilises (post v0.6) so the plugin doesn't have to track schema churn.
+A quality-of-life layer on top of the core tool. The underlying format stays YAML — the plugin makes authoring and reviewing it human-friendly without abstracting away the file. Built after the schema stabilises (post v0.6) so the plugin doesn't have to track schema churn.
 
-### Requirement authoring UI
-A form-based panel for creating and editing requirements. Title, description, acceptance criteria, and corner cases are individual form fields — the plugin serializes to YAML. New requirements automatically receive the next sequential ID. No hand-writing structure, no indentation errors.
+### Three-mode CONTRACT.yaml view
 
-### Requirement viewer
-A sidebar panel that renders requirements as structured cards rather than raw YAML. Status badges, version, expandable corner cases. Makes reviewing the contract fast without opening the file directly.
+Mirrors the markdown editing experience developers already know:
+
+- **Source** — raw YAML, full editor. For power users and version control review. No magic, just the file.
+- **Rendered** — requirements displayed as structured cards. Status badges, version, acceptance criteria as a checklist, corner cases expandable, supersession chain shown as visible links between cards. Coverage state from last `pratya:run` shown as a colour indicator on each card. Read-only — the primary way to review the contract quickly.
+- **Split** — YAML on the left, rendered view on the right, live sync. Edit the YAML and the card updates in real time. Validation errors surface inline. This is the primary authoring experience — you see the structure you're producing as you type without mentally parsing indentation.
+
+This approach keeps developers close to the file — they remain aware they're editing a real YAML artifact, PRs look normal, and the git history stays clean.
+
+### Schema-driven autocompletion
+
+Pratya publishes a **JSON Schema** for CONTRACT.yaml. IntelliJ has built-in support for JSON Schema on YAML files — once registered, the editor provides:
+
+- Field name autocompletion as you type
+- Value autocompletion for enum fields — `status` offers `draft`, `approved`, `deprecated`, `superseded`
+- Required field validation — missing mandatory fields underlined immediately
+- Type validation — wrong field types surfaced inline
+- Hover documentation — schema description shown on hover over any field
+- ID format validation via regex — `^[A-Z]+-[0-9]{3}(-CC-[0-9]{3})?$`
+- Semver format enforcement on version fields
+- Date format enforcement on changelog entries
+
+**Schema distribution — two channels:**
+
+The schema is published to **SchemaStore.org** — IntelliJ, VS Code, and any SchemaStore-aware editor automatically picks it up for files named `CONTRACT.yaml` with zero user configuration. This gives VS Code users autocompletion and validation for free without any plugin, extending Pratya's reach beyond IntelliJ significantly.
+
+The schema is also **bundled in the plugin** and registered programmatically as a fallback — works without internet access and guarantees the schema version matches the plugin version.
+
+Cross-reference validation — `supersedes` and `superseded_by` pointing to valid existing IDs — requires dynamic plugin logic beyond what static JSON Schema can express and is handled separately by the plugin.
 
 ### Versioning assistant
-When an existing requirement is edited, the plugin detects change severity and prompts accordingly — breaking change suggests a major bump, clarification suggests a patch. Changelog entries are generated automatically.
 
-### Inline validation
-- Malformed IDs flagged immediately
-- `superseded_by` and `supersedes` references validated against existing IDs
-- Broken supersession chains highlighted
-- Duplicate IDs detected on save
+When an existing requirement is edited in split mode, the plugin detects change severity and prompts — breaking change suggests a major bump, clarification suggests a patch. Changelog entries are generated automatically with the current date. The developer just confirms.
 
 ### Traceability gutter icons
-In test files, a gutter icon appears next to `@Requirement("AUTH-001")` annotations. Hovering shows the requirement title and description inline. Clicking navigates to the requirement in CONTRACT.yaml. The reverse works too — the requirement panel shows which test methods are mapped to each requirement and their current pass/fail state from the last `pratya:run` execution.
 
-**Distribution:** JetBrains Marketplace.
+In test files, a gutter icon appears next to `@Requirement("AUTH-001")` annotations. Hovering shows the requirement title, description, and status inline without leaving the test file. Clicking navigates to the requirement in CONTRACT.yaml. If the requirement is deprecated or superseded the icon shows a warning colour.
+
+The reverse works too — in rendered mode, each requirement card shows which test methods are mapped to it with their current pass/fail state from the last `pratya:run` execution. Clicking a test method name navigates directly to it.
+
+### Inline audit warnings
+
+- `@Requirement` references an ID not found in CONTRACT.yaml
+- `@Requirement` references a deprecated or superseded requirement
+- Approved requirement exists with no mapped tests
+
+### `pratya:run` integration
+
+A run button on each requirement card in rendered mode triggers `pratya:run -Dpratya.requirementId=<ID>` for that specific requirement directly from the IDE. Results update the coverage state on the card in real time.
+
+**Distribution:** JetBrains Marketplace. JSON Schema published to SchemaStore.org independently of the plugin release cycle.
 
 ---
 
