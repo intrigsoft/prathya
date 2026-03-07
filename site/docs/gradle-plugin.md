@@ -23,8 +23,6 @@ dependencies {
 prathya {
     contractFile = file("CONTRACT.yaml")
     failOnViolations = true
-    minimumRequirementCoverage = 80
-    minimumCornerCaseCoverage = 60
     outputDirectory = layout.buildDirectory.dir("prathya")
 }
 ```

@@ -30,6 +30,10 @@ public class JsonReportWriter implements ReportWriter {
             writeCodeCoverageNode(root.putObject("codeCoverage"), matrix.getCodeCoverage());
         }
 
+        if (matrix.getContractCodeCoverage() != null) {
+            writeCodeCoverageNode(root.putObject("contractCodeCoverage"), matrix.getContractCodeCoverage());
+        }
+
         Files.createDirectories(outputFile.getParent());
         mapper.writerWithDefaultPrettyPrinter().writeValue(outputFile.toFile(), root);
     }

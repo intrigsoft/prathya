@@ -93,30 +93,8 @@ All parameters can be set in `<configuration>` or as `-D` system properties.
 | `prathya.contractFile` | `${project.basedir}/CONTRACT.yaml` | Path to the contract file |
 | `prathya.skip` | `false` | Skip Prathya execution entirely |
 | `prathya.failOnViolations` | `true` | Fail the build on audit violations |
-| `prathya.minimumRequirementCoverage` | `0` | Minimum requirement coverage % (0 = no threshold) |
-| `prathya.minimumCornerCaseCoverage` | `0` | Minimum corner case coverage % (0 = no threshold) |
 | `prathya.jacocoReportFile` | `${project.build.directory}/site/jacoco/jacoco.xml` | Path to JaCoCo XML report |
 | `prathya.outputDirectory` | `${project.build.directory}/prathya` | Report output directory |
-
-## CI Gate Example
-
-```xml
-<plugin>
-    <groupId>dev.prathya</groupId>
-    <artifactId>prathya-maven-plugin</artifactId>
-    <version>${prathya.version}</version>
-    <configuration>
-        <failOnViolations>true</failOnViolations>
-        <minimumRequirementCoverage>80</minimumRequirementCoverage>
-        <minimumCornerCaseCoverage>60</minimumCornerCaseCoverage>
-    </configuration>
-    <executions>
-        <execution>
-            <goals><goal>verify</goal></goals>
-        </execution>
-    </executions>
-</plugin>
-```
 
 ## Exclude Statuses
 
@@ -195,7 +173,8 @@ Aggregate report output: `target/prathya-aggregate/index.html`
 [INFO]   Requirements: 5/6 covered (83.3%)
 [INFO]   Corner cases: 3/4 covered (75.0%)
 [INFO]   Violations: 1 (1 error, 0 warn)
-[INFO]   Code coverage: 87.2% lines, 71.4% branches
+[INFO]   Contract code coverage: 72.1% lines, 58.3% branches
+[INFO]   Total code coverage: 87.2% lines, 71.4% branches
 [INFO]   Reports: /path/to/target/prathya
 ```
 
@@ -207,5 +186,7 @@ The HTML report shows summary cards:
 |---|---|
 | **Requirement Coverage** | % of approved requirements with at least one mapped test |
 | **Corner Case Coverage** | % of defined corner cases with at least one mapped test |
-| **Line Coverage** | % of executable lines hit (from JaCoCo) |
-| **Branch Coverage** | % of code branches hit (from JaCoCo) |
+| **Contract Code Coverage** | % of code covered by `@Requirement`-annotated tests only (from JaCoCo) |
+| **Total Code Coverage** | % of all code covered by all tests (from JaCoCo) |
+
+**Contract code coverage** is the key metric that bridges requirement traceability and code coverage. It answers: "how much of our code is exercised by tests that are linked to a requirement?" The gap between contract code coverage and total code coverage reveals how much test effort is untethered from the contract.

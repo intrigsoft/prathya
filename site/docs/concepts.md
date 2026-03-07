@@ -42,8 +42,6 @@ When using the `prathya:run` goal, coverage goes beyond a simple covered/uncover
 | **Covered + Failing** | Contract broken — a test exists but the implementation is wrong |
 | **Not Covered** | Contract unverified — no test maps to this requirement |
 
-A covered+failing state is actively worse than not covered — it means the contract was written, a test was written, but the implementation is wrong.
-
 ## Requirement Lifecycle
 
 Requirements follow a defined lifecycle:
@@ -73,7 +71,9 @@ Corner cases can be annotated and tracked independently, ensuring edge cases are
 
 ## ID Conventions
 
-### Format
+Requirement IDs are opaque strings — Prathya does not enforce a specific format. The following convention is recommended:
+
+### Recommended Format
 
 ```
 {MODULE}-{SEQUENCE}         → AUTH-001        (requirement)
@@ -87,15 +87,21 @@ Corner cases can be annotated and tracked independently, ensuring edge cases are
 - When a requirement changes in wording only, the **version increments** on the same ID
 - When a requirement is split, the original is deprecated and new IDs are created
 
-### Versioning Semantics
+### Recommended Versioning Semantics
 
-Requirement versions follow semver semantics:
+Requirement versions are free-form strings. We recommend following semver semantics:
 
 | Bump | Meaning |
 |---|---|
 | **Major** | Breaking change to the contract — mapped tests must be re-evaluated |
 | **Minor** | Additive change (new corner case, expanded scope) |
 | **Patch** | Wording or clarification, no behavioral change |
+
+## Contract Code Coverage
+
+When JaCoCo is present, Prathya computes **contract code coverage** — the percentage of code covered exclusively by `@Requirement`-annotated tests. This is distinct from total code coverage, which includes all tests regardless of whether they trace to a requirement.
+
+The gap between the two numbers is meaningful. If total code coverage is 87% but contract code coverage is 60%, then 27% of your code coverage comes from tests that aren't linked to any requirement. Those tests exercise code, but don't prove intent.
 
 ## The Coverage Quadrant
 

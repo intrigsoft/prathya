@@ -118,6 +118,22 @@
                 <div class="sub-label">{{branchCovered}} / {{branchCoveredTotal}} branches</div>
             </div>
             {{/hasCodeCoverage}}
+            {{#hasContractCodeCoverage}}
+            <div class="summary-card">
+                <span class="info-icon">i</span>
+                <div class="info-tooltip">Percentage of executable lines covered exclusively by @Requirement-annotated tests (from JaCoCo). This measures how much code is exercised by tests that prove a contract requirement.</div>
+                <div class="value">{{contractLineCoverage}}%</div>
+                <div class="label">Contract Line Coverage</div>
+                <div class="sub-label">{{contractLineCovered}} / {{contractLineCoveredTotal}} lines</div>
+            </div>
+            <div class="summary-card">
+                <span class="info-icon">i</span>
+                <div class="info-tooltip">Percentage of code branches covered exclusively by @Requirement-annotated tests (from JaCoCo). Low contract branch coverage suggests requirements are not fully verified at the code level.</div>
+                <div class="value">{{contractBranchCoverage}}%</div>
+                <div class="label">Contract Branch Coverage</div>
+                <div class="sub-label">{{contractBranchCovered}} / {{contractBranchCoveredTotal}} branches</div>
+            </div>
+            {{/hasContractCodeCoverage}}
         </div>
 
         <div class="expand-controls">

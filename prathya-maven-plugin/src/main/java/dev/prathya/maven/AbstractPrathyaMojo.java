@@ -190,6 +190,11 @@ public abstract class AbstractPrathyaMojo extends AbstractMojo {
             getLog().info(String.format("  Code coverage: %.1f%% lines, %.1f%% branches",
                     cc.getLineRate(), cc.getBranchRate()));
         }
+        if (matrix.getContractCodeCoverage() != null) {
+            CodeCoverageSummary ccc = matrix.getContractCodeCoverage();
+            getLog().info(String.format("  Contract code coverage: %.1f%% lines, %.1f%% branches",
+                    ccc.getLineRate(), ccc.getBranchRate()));
+        }
     }
 
     public record PipelineResult(CoverageMatrix matrix, List<Violation> violations) {

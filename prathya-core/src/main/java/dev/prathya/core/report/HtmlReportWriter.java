@@ -94,6 +94,21 @@ public class HtmlReportWriter implements ReportWriter {
             model.put("branchCoveredTotal", cc.getBranchCovered() + cc.getBranchMissed());
         }
 
+        // Contract code coverage (JaCoCo — from requirement-mapped tests only)
+        boolean hasContractCodeCoverage = matrix.getContractCodeCoverage() != null;
+        model.put("hasContractCodeCoverage", hasContractCodeCoverage);
+        if (hasContractCodeCoverage) {
+            CodeCoverageSummary ccc = matrix.getContractCodeCoverage();
+            model.put("contractLineCoverage", formatPercent(ccc.getLineRate()));
+            model.put("contractBranchCoverage", formatPercent(ccc.getBranchRate()));
+            model.put("contractLineCovered", ccc.getLineCovered());
+            model.put("contractLineMissed", ccc.getLineMissed());
+            model.put("contractLineCoveredTotal", ccc.getLineCovered() + ccc.getLineMissed());
+            model.put("contractBranchCovered", ccc.getBranchCovered());
+            model.put("contractBranchMissed", ccc.getBranchMissed());
+            model.put("contractBranchCoveredTotal", ccc.getBranchCovered() + ccc.getBranchMissed());
+        }
+
         // Build lookup from contract definitions (if available)
         Map<String, RequirementDefinition> defById = new HashMap<>();
         Map<String, CornerCase> ccDefById = new HashMap<>();
