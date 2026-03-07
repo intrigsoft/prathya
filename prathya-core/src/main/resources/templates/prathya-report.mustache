@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prathya Report — {{moduleName}}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #333; background: #f8f9fa; }
+        .container { max-width: 1100px; margin: 0 auto; padding: 20px; }
+        header { background: #2c3e50; color: #fff; padding: 24px 0; margin-bottom: 24px; }
+        header .container { display: flex; justify-content: space-between; align-items: center; }
+        header h1 { font-size: 1.5rem; }
+        header .timestamp { font-size: 0.85rem; opacity: 0.8; }
+        .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+        .summary-card { background: #fff; border-radius: 8px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); text-align: center; position: relative; }
+        .summary-card .value { font-size: 2rem; font-weight: 700; color: #2c3e50; }
+        .summary-card .label { font-size: 0.85rem; color: #777; margin-top: 4px; }
+        .summary-card .sub-label { font-size: 0.75rem; color: #999; margin-top: 2px; }
+        .info-icon { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; border-radius: 50%; background: #dee2e6; color: #555; font-size: 0.65rem; font-weight: 700; cursor: help; position: absolute; top: 10px; right: 10px; font-style: normal; }
+        .info-icon:hover + .info-tooltip, .info-tooltip:hover { opacity: 1; visibility: visible; }
+        .info-tooltip { position: absolute; top: 32px; right: 0; background: #2c3e50; color: #fff; padding: 10px 14px; border-radius: 6px; font-size: 0.78rem; line-height: 1.5; text-align: left; width: 260px; z-index: 10; opacity: 0; visibility: hidden; transition: opacity 0.15s, visibility 0.15s; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: 600; }
+        .badge.covered { background: #d4edda; color: #155724; }
+        .badge.uncovered { background: #f8d7da; color: #721c24; }
+        .badge.inactive { background: #e2e3e5; color: #6c757d; }
+        .badge.passing { background: #d4edda; color: #155724; }
+        .badge.failing { background: #f8d7da; color: #721c24; }
+        .badge.severity-error { background: #f8d7da; color: #721c24; }
+        .badge.severity-warn { background: #fff3cd; color: #856404; }
+
+        /* Requirement cards */
+        .req-card { background: #fff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 16px; overflow: hidden; }
+        .req-card details > summary { list-style: none; cursor: pointer; }
+        .req-card details > summary::-webkit-details-marker { display: none; }
+        .req-header { display: flex; align-items: baseline; gap: 12px; padding: 14px 20px; border-bottom: 1px solid #eee; }
+        .req-card details:not([open]) .req-header { border-bottom: none; }
+        .req-header:hover { background: #f0f4f8; }
+        .req-id { font-size: 1rem; font-weight: 700; color: #2c3e50; }
+        .req-id::before { content: "\25B6"; font-size: 0.65rem; margin-right: 6px; color: #999; display: inline-block; transition: transform 0.15s; }
+        .req-card details[open] .req-id::before { transform: rotate(90deg); }
+        .req-title { font-size: 0.95rem; color: #555; flex: 1; }
+        .req-badges { display: flex; gap: 6px; align-items: center; }
+        .req-body { padding: 16px 20px; }
+        .expand-controls { margin-bottom: 12px; display: flex; gap: 8px; }
+        .expand-controls button { background: #fff; border: 1px solid #dee2e6; border-radius: 6px; padding: 6px 14px; font-size: 0.82rem; color: #555; cursor: pointer; }
+        .expand-controls button:hover { background: #f0f4f8; border-color: #adb5bd; }
+        .req-description { font-size: 0.9rem; color: #444; line-height: 1.5; margin-bottom: 12px; }
+        .req-section-label { font-size: 0.8rem; font-weight: 600; color: #777; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; margin-top: 12px; }
+        .acceptance-criteria { padding-left: 20px; font-size: 0.85rem; color: #555; line-height: 1.6; }
+        .acceptance-criteria li { margin: 2px 0; }
+
+        /* Test list */
+        .test-list { list-style: none; padding: 0; }
+        .test-list li { font-size: 0.82rem; padding: 3px 0; font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; color: #155724; }
+        .test-list li .class-name { color: #999; font-size: 0.75rem; margin-left: 4px; }
+        .no-tests { font-size: 0.85rem; color: #999; font-style: italic; }
+
+        /* Corner cases */
+        .cc-list { margin-top: 4px; }
+        .cc-item { border-left: 3px solid #dee2e6; margin-bottom: 8px; padding: 8px 12px; background: #f8f9fa; border-radius: 0 6px 6px 0; }
+        .cc-item.cc-covered { border-left-color: #28a745; }
+        .cc-item.cc-uncovered { border-left-color: #dc3545; }
+        .cc-header { display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px; }
+        .cc-id { font-size: 0.85rem; font-weight: 600; color: #2c3e50; }
+        .cc-description { font-size: 0.85rem; color: #555; }
+        .cc-tests { margin-top: 4px; }
+        .cc-tests .test-list li { font-size: 0.78rem; }
+
+        /* Inline violations on cards */
+        .req-violations { margin-top: 12px; }
+        .req-violation { display: flex; align-items: baseline; gap: 8px; padding: 6px 10px; border-radius: 6px; margin-bottom: 4px; font-size: 0.83rem; }
+        .req-violation.error { background: #f8d7da; color: #721c24; }
+        .req-violation.warn { background: #fff3cd; color: #856404; }
+        .req-violation .severity-tag { font-weight: 700; text-transform: uppercase; font-size: 0.75rem; }
+
+        /* Global violations */
+        .violations { background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 20px; margin-bottom: 24px; }
+        .violations h2 { color: #856404; margin-bottom: 12px; font-size: 1.1rem; }
+        .violations table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 8px; overflow: hidden; margin-bottom: 0; box-shadow: none; }
+        .violations th { background: #856404; color: #fff; text-align: left; padding: 12px 16px; font-weight: 600; font-size: 0.85rem; text-transform: uppercase; }
+        .violations td { padding: 10px 16px; border-bottom: 1px solid #eee; font-size: 0.9rem; }
+        .violations tr:last-child td { border-bottom: none; }
+
+        footer { text-align: center; padding: 20px; font-size: 0.8rem; color: #999; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Prathya — {{moduleName}}</h1>
+            <span class="timestamp">Generated: {{generatedAt}}</span>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="summary">
+            <div class="summary-card">
+                <span class="info-icon">i</span>
+                <div class="info-tooltip">Percentage of all contract items (requirements + corner cases) that have at least one test mapped via @Requirement. Covers {{coveredRequirements}}/{{activeRequirements}} requirements and {{coveredCornerCases}}/{{totalCornerCases}} corner cases.</div>
+                <div class="value">{{contractCoverage}}%</div>
+                <div class="label">Contract Coverage</div>
+                <div class="sub-label">{{coveredItems}} / {{totalItems}} items</div>
+            </div>
+            {{#hasCodeCoverage}}
+            <div class="summary-card">
+                <span class="info-icon">i</span>
+                <div class="info-tooltip">Percentage of executable lines covered by tests (from JaCoCo). High line coverage with low requirement coverage may indicate undocumented features or dead code.</div>
+                <div class="value">{{lineCoverage}}%</div>
+                <div class="label">Line Coverage</div>
+                <div class="sub-label">{{lineCovered}} / {{lineCoveredTotal}} lines</div>
+            </div>
+            <div class="summary-card">
+                <span class="info-icon">i</span>
+                <div class="info-tooltip">Percentage of code branches (if/else, switch) covered by tests (from JaCoCo). Low branch coverage suggests missing edge-case tests.</div>
+                <div class="value">{{branchCoverage}}%</div>
+                <div class="label">Branch Coverage</div>
+                <div class="sub-label">{{branchCovered}} / {{branchCoveredTotal}} branches</div>
+            </div>
+            {{/hasCodeCoverage}}
+        </div>
+
+        <div class="expand-controls">
+            <button onclick="document.querySelectorAll('.req-card details').forEach(d=>d.open=true)">Expand All</button>
+            <button onclick="document.querySelectorAll('.req-card details').forEach(d=>d.open=false)">Collapse All</button>
+        </div>
+
+        {{#requirements}}
+        <div class="req-card">
+            <details>
+                <summary>
+                    <div class="req-header">
+                        <span class="req-id">{{id}}</span>
+                        {{#hasTitle}}<span class="req-title">{{title}}</span>{{/hasTitle}}
+                        <div class="req-badges">
+                            <span class="badge inactive">{{status}}</span>
+                            <span class="badge {{coverageClass}}">{{coverageLabel}}</span>
+                        </div>
+                    </div>
+                </summary>
+                <div class="req-body">
+                    {{#hasDescription}}
+                    <div class="req-description">{{description}}</div>
+                    {{/hasDescription}}
+
+                    {{#hasAcceptanceCriteria}}
+                    <div class="req-section-label">Acceptance Criteria</div>
+                    <ol class="acceptance-criteria">
+                        {{#acceptanceCriteria}}
+                        <li>{{.}}</li>
+                        {{/acceptanceCriteria}}
+                    </ol>
+                    {{/hasAcceptanceCriteria}}
+
+                    <div class="req-section-label">Tests ({{testCount}})</div>
+                    {{#hasTests}}
+                    <ul class="test-list">
+                        {{#testDetails}}
+                        <li>{{shortName}} <span class="class-name">{{className}}</span></li>
+                        {{/testDetails}}
+                    </ul>
+                    {{/hasTests}}
+                    {{^hasTests}}
+                    <div class="no-tests">No tests found</div>
+                    {{/hasTests}}
+
+                    {{#hasCornerCases}}
+                    <div class="req-section-label">Corner Cases</div>
+                    <div class="cc-list">
+                        {{#cornerCases}}
+                        <div class="cc-item {{#covered}}cc-covered{{/covered}}{{#uncovered}}cc-uncovered{{/uncovered}}">
+                            <div class="cc-header">
+                                <span class="cc-id">{{id}}</span>
+                                <span class="badge {{#covered}}covered{{/covered}}{{#uncovered}}uncovered{{/uncovered}}">{{#covered}}covered{{/covered}}{{#uncovered}}uncovered{{/uncovered}}</span>
+                            </div>
+                            {{#hasDescription}}
+                            <div class="cc-description">{{description}}</div>
+                            {{/hasDescription}}
+                            {{#hasTests}}
+                            <div class="cc-tests">
+                                <ul class="test-list">
+                                    {{#testDetails}}
+                                    <li>{{shortName}} <span class="class-name">{{className}}</span></li>
+                                    {{/testDetails}}
+                                </ul>
+                            </div>
+                            {{/hasTests}}
+                        </div>
+                        {{/cornerCases}}
+                    </div>
+                    {{/hasCornerCases}}
+
+                {{#hasViolations}}
+                <div class="req-violations">
+                    <div class="req-section-label">Violations</div>
+                    {{#violations}}
+                    <div class="req-violation {{severity}}">
+                        <span class="severity-tag">{{severity}}</span>
+                        <span>{{message}}</span>
+                    </div>
+                    {{/violations}}
+                </div>
+                {{/hasViolations}}
+                </div>
+            </details>
+        </div>
+        {{/requirements}}
+
+        {{#hasViolations}}
+        <div class="violations">
+            <h2>Violations</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Severity</th>
+                        <th>Type</th>
+                        <th>Message</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#violations}}
+                    <tr>
+                        <td><span class="badge severity-{{severity}}">{{severity}}</span></td>
+                        <td>{{type}}</td>
+                        <td>{{message}}</td>
+                    </tr>
+                    {{/violations}}
+                </tbody>
+            </table>
+        </div>
+        {{/hasViolations}}
+    </div>
+
+    <footer>
+        Generated by Prathya
+    </footer>
+</body>
+</html>
