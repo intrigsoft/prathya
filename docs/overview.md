@@ -1,10 +1,10 @@
-# Pratya — Contract-Driven Requirement Coverage for Java
+# Prathya — Contract-Driven Requirement Coverage for Java
 
 ## Overview
 
-Pratya is an open-source Java tool that brings formal requirement traceability to software testing. It treats requirements as first-class, versioned artifacts, links tests to those requirements via annotations, and measures **requirement coverage** — a more meaningful quality signal than code coverage alone.
+Prathya is an open-source Java tool that brings formal requirement traceability to software testing. It treats requirements as first-class, versioned artifacts, links tests to those requirements via annotations, and measures **requirement coverage** — a more meaningful quality signal than code coverage alone.
 
-Pratya introduces **Contract-Driven Development (CDD)** as a natural companion to established methodologies:
+Prathya introduces **Contract-Driven Development (CDD)** as a natural companion to established methodologies:
 
 - **TDD** — write the test first, then the code. Drives implementation but says nothing about whether the tests are the *right* tests.
 - **BDD** — write behavior specifications in natural language. Improves communication but doesn't enforce traceability, versioning, or coverage measurement against a formal contract.
@@ -12,7 +12,7 @@ Pratya introduces **Contract-Driven Development (CDD)** as a natural companion t
 
 The core insight: code coverage tells you what was _touched_. Requirement coverage tells you whether _intent_ was verified.
 
-Pratya is designed to sit alongside JaCoCo in the Java build lifecycle. Used together, the two metrics expose a quadrant of insights:
+Prathya is designed to sit alongside JaCoCo in the Java build lifecycle. Used together, the two metrics expose a quadrant of insights:
 
 | | Code Coverage High | Code Coverage Low |
 |---|---|---|
@@ -30,7 +30,7 @@ Every module has a `CONTRACT.yaml` file that defines its behavioral contract. Th
 Test methods are annotated with `@Requirement("REQ-ID")` to declare what requirement or corner case they verify. This is the only coupling between test code and requirements.
 
 ### Requirement Coverage
-Pratya scans annotations at build time, cross-references them against `CONTRACT.yaml`, and computes a coverage matrix. It produces an HTML report and a machine-readable JSON for CI integration.
+Prathya scans annotations at build time, cross-references them against `CONTRACT.yaml`, and computes a coverage matrix. It produces an HTML report and a machine-readable JSON for CI integration.
 
 ### No Manual Trace File
 The trace is derived from annotations at build time — no manually maintained mapping file is needed. The annotations _are_ the trace. This keeps the maintenance burden minimal.
@@ -169,7 +169,7 @@ requirements:
 ## Annotation Usage
 
 ```java
-import dev.pratya.annotations.Requirement;
+import dev.prathya.annotations.Requirement;
 
 class AuthServiceTest {
 
@@ -200,13 +200,13 @@ One test can cover multiple requirements or corner cases. One requirement can be
 ## Project Structure
 
 ```
-pratya/
-├── pratya-annotations/          # @Requirement annotation only — minimal JAR, no transitive deps
-├── pratya-core/                 # Domain model, YAML parser, coverage computation, reporting
-├── pratya-maven-plugin/         # Maven lifecycle integration
-├── pratya-gradle-plugin/        # Gradle task integration (second target)
-├── pratya-intellij-plugin/      # IntelliJ IDEA plugin — authoring UI, gutter icons, validation
-└── pratya-examples/             # Example Java project demonstrating usage
+prathya/
+├── prathya-annotations/          # @Requirement annotation only — minimal JAR, no transitive deps
+├── prathya-core/                 # Domain model, YAML parser, coverage computation, reporting
+├── prathya-maven-plugin/         # Maven lifecycle integration
+├── prathya-gradle-plugin/        # Gradle task integration (second target)
+├── prathya-intellij-plugin/      # IntelliJ IDEA plugin — authoring UI, gutter icons, validation
+└── prathya-examples/             # Example Java project demonstrating usage
 ```
 
 ### Parent POM
@@ -216,12 +216,12 @@ All modules share a parent `pom.xml` for version management. Published to Maven 
 
 ## Module Details
 
-### `pratya-annotations`
+### `prathya-annotations`
 
 A minimal JAR containing only the `@Requirement` annotation. Kept separate so test code has a lightweight dependency.
 
 ```java
-package dev.pratya.annotations;
+package dev.prathya.annotations;
 
 import java.lang.annotation.*;
 
@@ -243,7 +243,7 @@ public @interface Requirement {
 
 ---
 
-### `pratya-core`
+### `prathya-core`
 
 The framework-agnostic engine. Contains:
 
@@ -264,7 +264,7 @@ The framework-agnostic engine. Contains:
 
 ```java
 public interface RequirementParser {
-    ModuleContract parse(Path requirementYaml) throws PratyaException;
+    ModuleContract parse(Path requirementYaml) throws PrathyaException;
 }
 
 public interface AnnotationScanner {
@@ -277,7 +277,7 @@ public interface CoverageReporter {
     void writeJsonReport(CoverageMatrix matrix, Path outputFile);
 }
 
-public interface PratyaTestRunner {
+public interface PrathyaTestRunner {
     // Resolves which test methods are mapped to active requirements in the contract
     List<TestMethod> resolveTests(ModuleContract contract, List<TraceEntry> traces);
     // Parses standard Surefire XML reports and maps results back to requirements
@@ -287,26 +287,26 @@ public interface PratyaTestRunner {
 
 ---
 
-### `pratya-maven-plugin`
+### `prathya-maven-plugin`
 
 Hooks into the Maven `verify` phase (after `test` phase completes).
 
 **Plugin coordinates:**
 ```xml
-<groupId>dev.pratya</groupId>
-<artifactId>pratya-maven-plugin</artifactId>
+<groupId>dev.prathya</groupId>
+<artifactId>prathya-maven-plugin</artifactId>
 ```
 
 **Usage in project `pom.xml`:**
 ```xml
 <plugin>
-    <groupId>dev.pratya</groupId>
-    <artifactId>pratya-maven-plugin</artifactId>
+    <groupId>dev.prathya</groupId>
+    <artifactId>prathya-maven-plugin</artifactId>
     <version>1.0.0</version>
     <configuration>
         <requirementFile>${project.basedir}/CONTRACT.yaml</requirementFile>
         <testClassesDirectory>${project.build.testOutputDirectory}</testClassesDirectory>
-        <outputDirectory>${project.build.directory}/pratya</outputDirectory>
+        <outputDirectory>${project.build.directory}/prathya</outputDirectory>
         <failOnViolations>true</failOnViolations>
         <minimumRequirementCoverage>80</minimumRequirementCoverage>  <!-- percentage -->
         <excludeStatuses>
@@ -325,10 +325,10 @@ Hooks into the Maven `verify` phase (after `test` phase completes).
 ```
 
 **Plugin goals:**
-- `pratya:verify` — full scan, coverage computation, report generation, optional build failure
-- `pratya:run` — resolves tests mapped to active requirements, executes them via Surefire, computes coverage from results
-- `pratya:report` — report only, no build failure gate
-- `pratya:audit` — prints violations to console only
+- `prathya:verify` — full scan, coverage computation, report generation, optional build failure
+- `prathya:run` — resolves tests mapped to active requirements, executes them via Surefire, computes coverage from results
+- `prathya:report` — report only, no build failure gate
+- `prathya:audit` — prints violations to console only
 
 **Maven lifecycle binding:** `verify` phase (after `test`).
 
@@ -336,13 +336,13 @@ Hooks into the Maven `verify` phase (after `test` phase completes).
 
 ---
 
-## Focused Test Runner (`pratya:run`)
+## Focused Test Runner (`prathya:run`)
 
-The `pratya:run` goal shifts Pratya from **passive measurement** to **active execution**. It is a standalone orchestrator — it does not implement a test runner itself. Instead it delegates entirely to Surefire as a black box, using its existing inputs and outputs.
+The `prathya:run` goal shifts Prathya from **passive measurement** to **active execution**. It is a standalone orchestrator — it does not implement a test runner itself. Instead it delegates entirely to Surefire as a black box, using its existing inputs and outputs.
 
 ### Surefire-only initially
 
-For simplicity and reliability in the initial implementation, `pratya:run` uses Surefire exclusively — all tests annotated with `@Requirement` are executed via `mvn test`, regardless of whether they are unit or integration tests. This removes the need to classify tests by type, manage multiple runners, or deal with Failsafe lifecycle semantics.
+For simplicity and reliability in the initial implementation, `prathya:run` uses Surefire exclusively — all tests annotated with `@Requirement` are executed via `mvn test`, regardless of whether they are unit or integration tests. This removes the need to classify tests by type, manage multiple runners, or deal with Failsafe lifecycle semantics.
 
 The practical implication: teams place `@Requirement`-annotated tests in standard `*Test.java` classes picked up by Surefire. The convention is simple and universal. Failsafe support is a later milestone once the core flow is proven.
 
@@ -358,7 +358,7 @@ The practical implication: teams place `@Requirement`-annotated tests in standar
 8. Map results back to requirement IDs via the annotation trace
 9. Compute three-state coverage and generate report
 
-Pratya never touches test execution itself. Surefire runs tests exactly as it always does — Pratya just tells it which ones to run and reads the output.
+Prathya never touches test execution itself. Surefire runs tests exactly as it always does — Prathya just tells it which ones to run and reads the output.
 
 ### Three-state coverage model
 
@@ -371,17 +371,17 @@ This is more informative than a simple covered/uncovered binary. A covered+faili
 
 ### Standalone usage
 
-Because `pratya:run` uses Maven Invoker, it can be invoked standalone from the command line without being bound to any lifecycle phase.
+Because `prathya:run` uses Maven Invoker, it can be invoked standalone from the command line without being bound to any lifecycle phase.
 
 ```bash
 # Run all contract tests for approved requirements
-mvn pratya:run
+mvn prathya:run
 
 # Run tests for a specific requirement only
-mvn pratya:run -Dpratya.requirementId=AUTH-001
+mvn prathya:run -Dprathya.requirementId=AUTH-001
 
 # Run tests for a specific module
-mvn pratya:run -Dpratya.moduleId=AUTH
+mvn prathya:run -Dprathya.moduleId=AUTH
 ```
 
 ### Filtering options
@@ -394,7 +394,7 @@ mvn pratya:run -Dpratya.moduleId=AUTH
     <!-- Run tests for all approved requirements (default) -->
     <statusFilter>approved</statusFilter>
 
-    <!-- Fail the pratya:run goal if any mapped test fails -->
+    <!-- Fail the prathya:run goal if any mapped test fails -->
     <failOnTestFailure>true</failOnTestFailure>
 
     <!-- Directory to read Surefire XML reports from -->
@@ -404,7 +404,7 @@ mvn pratya:run -Dpratya.moduleId=AUTH
 
 ### Key implementation note
 
-The `PratyaTestRunner` interface in `pratya-core` is intentionally decoupled from Maven Invoker. Core only defines the contract — the Maven plugin provides the Invoker-based implementation. This keeps `pratya-core` framework-agnostic and leaves the door open for Failsafe support later without a redesign.
+The `PrathyaTestRunner` interface in `prathya-core` is intentionally decoupled from Maven Invoker. Core only defines the contract — the Maven plugin provides the Invoker-based implementation. This keeps `prathya-core` framework-agnostic and leaves the door open for Failsafe support later without a redesign.
 
 ---
 
@@ -419,7 +419,7 @@ JaCoCo-inspired layout, rendered via JMustache templates embedded as classpath r
 - **Drill-down** — click a requirement to see mapped test methods and which corner cases are covered vs missing
 - **Supersession chain** — deprecated/superseded requirements shown with links to successors
 
-### JSON Report (`pratya-report.json`)
+### JSON Report (`prathya-report.json`)
 Machine-readable. Intended for CI dashboards and quality gates.
 
 ```json
@@ -478,13 +478,13 @@ This mirrors JaCoCo's minimum coverage gate pattern, which teams already underst
 
 For multi-module Maven projects, `CONTRACT.yaml` lives at the module level. Each module has its own contract. The parent build aggregates reports from all child modules into a top-level coverage summary.
 
-Aggregation is handled by a separate `pratya:aggregate` goal bound to the parent POM's `verify` phase.
+Aggregation is handled by a separate `prathya:aggregate` goal bound to the parent POM's `verify` phase.
 
 ---
 
 ## Audit Rules
 
-The `pratya:audit` goal checks for and reports:
+The `prathya:audit` goal checks for and reports:
 
 | Rule | Severity |
 |---|---|
@@ -499,7 +499,7 @@ The `pratya:audit` goal checks for and reports:
 
 ---
 
-## `pratya-intellij-plugin`
+## `prathya-intellij-plugin`
 
 A quality-of-life layer on top of the core tool. The underlying format stays YAML — the plugin makes authoring and reviewing it human-friendly without abstracting away the file. Built after the schema stabilises (post v0.6) so the plugin doesn't have to track schema churn.
 
@@ -508,14 +508,14 @@ A quality-of-life layer on top of the core tool. The underlying format stays YAM
 Mirrors the markdown editing experience developers already know:
 
 - **Source** — raw YAML, full editor. For power users and version control review. No magic, just the file.
-- **Rendered** — requirements displayed as structured cards. Status badges, version, acceptance criteria as a checklist, corner cases expandable, supersession chain shown as visible links between cards. Coverage state from last `pratya:run` shown as a colour indicator on each card. Read-only — the primary way to review the contract quickly.
+- **Rendered** — requirements displayed as structured cards. Status badges, version, acceptance criteria as a checklist, corner cases expandable, supersession chain shown as visible links between cards. Coverage state from last `prathya:run` shown as a colour indicator on each card. Read-only — the primary way to review the contract quickly.
 - **Split** — YAML on the left, rendered view on the right, live sync. Edit the YAML and the card updates in real time. Validation errors surface inline. This is the primary authoring experience — you see the structure you're producing as you type without mentally parsing indentation.
 
 This approach keeps developers close to the file — they remain aware they're editing a real YAML artifact, PRs look normal, and the git history stays clean.
 
 ### Schema-driven autocompletion
 
-Pratya publishes a **JSON Schema** for CONTRACT.yaml. IntelliJ has built-in support for JSON Schema on YAML files — once registered, the editor provides:
+Prathya publishes a **JSON Schema** for CONTRACT.yaml. IntelliJ has built-in support for JSON Schema on YAML files — once registered, the editor provides:
 
 - Field name autocompletion as you type
 - Value autocompletion for enum fields — `status` offers `draft`, `approved`, `deprecated`, `superseded`
@@ -528,7 +528,7 @@ Pratya publishes a **JSON Schema** for CONTRACT.yaml. IntelliJ has built-in supp
 
 **Schema distribution — two channels:**
 
-The schema is published to **SchemaStore.org** — IntelliJ, VS Code, and any SchemaStore-aware editor automatically picks it up for files named `CONTRACT.yaml` with zero user configuration. This gives VS Code users autocompletion and validation for free without any plugin, extending Pratya's reach beyond IntelliJ significantly.
+The schema is published to **SchemaStore.org** — IntelliJ, VS Code, and any SchemaStore-aware editor automatically picks it up for files named `CONTRACT.yaml` with zero user configuration. This gives VS Code users autocompletion and validation for free without any plugin, extending Prathya's reach beyond IntelliJ significantly.
 
 The schema is also **bundled in the plugin** and registered programmatically as a fallback — works without internet access and guarantees the schema version matches the plugin version.
 
@@ -542,7 +542,7 @@ When an existing requirement is edited in split mode, the plugin detects change 
 
 In test files, a gutter icon appears next to `@Requirement("AUTH-001")` annotations. Hovering shows the requirement title, description, and status inline without leaving the test file. Clicking navigates to the requirement in CONTRACT.yaml. If the requirement is deprecated or superseded the icon shows a warning colour.
 
-The reverse works too — in rendered mode, each requirement card shows which test methods are mapped to it with their current pass/fail state from the last `pratya:run` execution. Clicking a test method name navigates directly to it.
+The reverse works too — in rendered mode, each requirement card shows which test methods are mapped to it with their current pass/fail state from the last `prathya:run` execution. Clicking a test method name navigates directly to it.
 
 ### Inline audit warnings
 
@@ -550,9 +550,9 @@ The reverse works too — in rendered mode, each requirement card shows which te
 - `@Requirement` references a deprecated or superseded requirement
 - Approved requirement exists with no mapped tests
 
-### `pratya:run` integration
+### `prathya:run` integration
 
-A run button on each requirement card in rendered mode triggers `pratya:run -Dpratya.requirementId=<ID>` for that specific requirement directly from the IDE. Results update the coverage state on the card in real time.
+A run button on each requirement card in rendered mode triggers `prathya:run -Dprathya.requirementId=<ID>` for that specific requirement directly from the IDE. Results update the coverage state on the card in real time.
 
 **Distribution:** JetBrains Marketplace. JSON Schema published to SchemaStore.org independently of the plugin release cycle.
 
@@ -560,19 +560,19 @@ A run button on each requirement card in rendered mode triggers `pratya:run -Dpr
 
 ## Roadmap
 
-1. **v0.1** — `pratya-annotations` + `pratya-core` (parser, scanner, coverage computation)
-2. **v0.2** — `pratya-maven-plugin` — `pratya:verify` goal, HTML + JSON report via JMustache
+1. **v0.1** — `prathya-annotations` + `prathya-core` (parser, scanner, coverage computation)
+2. **v0.2** — `prathya-maven-plugin` — `prathya:verify` goal, HTML + JSON report via JMustache
 3. **v0.3** — CI gate (fail build on violations, minimum coverage threshold)
-4. **v0.4** — `pratya:run` focused test runner — Surefire-based, three-state coverage
-5. **v0.5** — Failsafe support in `pratya:run` for integration test execution
-6. **v0.6** — Multi-module aggregation (`pratya:aggregate`)
-7. **v0.7** — `pratya-gradle-plugin`
-8. **v0.8** — `pratya-intellij-plugin` — requirement authoring UI, traceability gutter icons, validation
+4. **v0.4** — `prathya:run` focused test runner — Surefire-based, three-state coverage
+5. **v0.5** — Failsafe support in `prathya:run` for integration test execution
+6. **v0.6** — Multi-module aggregation (`prathya:aggregate`)
+7. **v0.7** — `prathya-gradle-plugin`
+8. **v0.8** — `prathya-intellij-plugin` — requirement authoring UI, traceability gutter icons, validation
 9. **v1.0** — Maven Central publication, stable schema, production-ready
 
 ### Future considerations (post v1.0)
 - **Test generation** — given a `CONTRACT.yaml`, generate test method stubs pre-annotated with `@Requirement` IDs, one per requirement and corner case. Reduces the bootstrap cost of writing contract tests from scratch and ensures no requirement or corner case is missed. Natural fit for AI-assisted generation in the vibe coding workflow.
-- **MCP server** — expose Pratya's full read/write surface as a Model Context Protocol server. Tools like `get_contract`, `list_requirements`, `get_requirement`, `list_untested`, `get_coverage_matrix`, `add_requirement`, `update_requirement`, `add_corner_case` allow AI agents to participate directly in the contract-driven development loop. The agent reads the contract before generating code, checks coverage after generating tests, and iterates until the contract is satisfied — closing the vibe coding quality loop that no existing tool addresses.
+- **MCP server** — expose Prathya's full read/write surface as a Model Context Protocol server. Tools like `get_contract`, `list_requirements`, `get_requirement`, `list_untested`, `get_coverage_matrix`, `add_requirement`, `update_requirement`, `add_corner_case` allow AI agents to participate directly in the contract-driven development loop. The agent reads the contract before generating code, checks coverage after generating tests, and iterates until the contract is satisfied — closing the vibe coding quality loop that no existing tool addresses.
 
 ---
 

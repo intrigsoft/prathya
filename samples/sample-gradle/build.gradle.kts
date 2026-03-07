@@ -1,6 +1,6 @@
 plugins {
     java
-    id("dev.pratya") version "1.0.0-SNAPSHOT"
+    id("dev.prathya") version "1.0.0-SNAPSHOT"
 }
 
 group = "com.example"
@@ -18,7 +18,7 @@ repositories {
 }
 
 dependencies {
-    testImplementation("dev.pratya:pratya-annotations:1.0.0-SNAPSHOT")
+    testImplementation("dev.prathya:prathya-annotations:1.0.0-SNAPSHOT")
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.1")
 }
 
@@ -26,6 +26,6 @@ tasks.test {
     useJUnitPlatform()
 }
 
-pratya {
+prathya {
     failOnViolations.set(true)
 }

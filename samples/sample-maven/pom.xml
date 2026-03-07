@@ -9,21 +9,21 @@
     <version>1.0.0-SNAPSHOT</version>
 
     <name>sample-maven</name>
-    <description>Sample Maven project demonstrating pratya-maven-plugin usage</description>
+    <description>Sample Maven project demonstrating prathya-maven-plugin usage</description>
 
     <properties>
         <java.version>17</java.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <pratya.version>1.0.0-SNAPSHOT</pratya.version>
+        <prathya.version>1.0.0-SNAPSHOT</prathya.version>
     </properties>
 
     <dependencies>
         <dependency>
-            <groupId>dev.pratya</groupId>
-            <artifactId>pratya-annotations</artifactId>
-            <version>${pratya.version}</version>
+            <groupId>dev.prathya</groupId>
+            <artifactId>prathya-annotations</artifactId>
+            <version>${prathya.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -62,9 +62,9 @@
                 </executions>
             </plugin>
             <plugin>
-                <groupId>dev.pratya</groupId>
-                <artifactId>pratya-maven-plugin</artifactId>
-                <version>${pratya.version}</version>
+                <groupId>dev.prathya</groupId>
+                <artifactId>prathya-maven-plugin</artifactId>
+                <version>${prathya.version}</version>
                 <configuration>
                     <failOnViolations>false</failOnViolations>
                 </configuration>

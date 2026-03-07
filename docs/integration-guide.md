@@ -1,19 +1,19 @@
-# Pratya Integration Guide
+# Prathya Integration Guide
 
-Add contract-driven requirement coverage to any Maven project. Pratya scans your tests for `@Requirement` annotations, matches them against a `CONTRACT.yaml`, and generates coverage reports showing which requirements have tests, which pass, and (optionally) how that correlates with JaCoCo code coverage.
+Add contract-driven requirement coverage to any Maven project. Prathya scans your tests for `@Requirement` annotations, matches them against a `CONTRACT.yaml`, and generates coverage reports showing which requirements have tests, which pass, and (optionally) how that correlates with JaCoCo code coverage.
 
 ## Prerequisites
 
 - Java 17+
 - Maven 3.8+
-- Pratya artifacts installed to your local Maven repository (or published to a private registry)
+- Prathya artifacts installed to your local Maven repository (or published to a private registry)
 
 ```bash
-# From the pratya repo root
+# From the prathya repo root
 mvn install -DskipTests
 ```
 
-This installs `pratya-annotations`, `pratya-core`, and `pratya-maven-plugin` version `1.0.0-SNAPSHOT`.
+This installs `prathya-annotations`, `prathya-core`, and `prathya-maven-plugin` version `1.0.0-SNAPSHOT`.
 
 ---
 
@@ -23,22 +23,22 @@ Add the following to your project's `pom.xml`:
 
 ```xml
 <properties>
-    <pratya.version>1.0.0-SNAPSHOT</pratya.version>
+    <prathya.version>1.0.0-SNAPSHOT</prathya.version>
 </properties>
 
 <dependencies>
-    <!-- Pratya test annotation (test scope only, zero transitive deps) -->
+    <!-- Prathya test annotation (test scope only, zero transitive deps) -->
     <dependency>
-        <groupId>dev.pratya</groupId>
-        <artifactId>pratya-annotations</artifactId>
-        <version>${pratya.version}</version>
+        <groupId>dev.prathya</groupId>
+        <artifactId>prathya-annotations</artifactId>
+        <version>${prathya.version}</version>
         <scope>test</scope>
     </dependency>
 </dependencies>
 
 <build>
     <plugins>
-        <!-- (Optional) JaCoCo for code coverage in the Pratya report -->
+        <!-- (Optional) JaCoCo for code coverage in the Prathya report -->
         <plugin>
             <groupId>org.jacoco</groupId>
             <artifactId>jacoco-maven-plugin</artifactId>
@@ -55,11 +55,11 @@ Add the following to your project's `pom.xml`:
             </executions>
         </plugin>
 
-        <!-- Pratya plugin -->
+        <!-- Prathya plugin -->
         <plugin>
-            <groupId>dev.pratya</groupId>
-            <artifactId>pratya-maven-plugin</artifactId>
-            <version>${pratya.version}</version>
+            <groupId>dev.prathya</groupId>
+            <artifactId>prathya-maven-plugin</artifactId>
+            <version>${prathya.version}</version>
             <executions>
                 <execution>
                     <goals><goal>verify</goal></goals>
@@ -70,7 +70,7 @@ Add the following to your project's `pom.xml`:
 </build>
 ```
 
-> JaCoCo `report` runs in the `test` phase, which completes before Pratya `verify` runs in the `verify` phase. No special ordering needed.
+> JaCoCo `report` runs in the `test` phase, which completes before Prathya `verify` runs in the `verify` phase. No special ordering needed.
 
 ---
 
@@ -138,7 +138,7 @@ requirements:
 Import `@Requirement` and annotate each test method with the IDs it verifies:
 
 ```java
-import dev.pratya.annotations.Requirement;
+import dev.prathya.annotations.Requirement;
 
 class AuthServiceTest {
 
@@ -174,23 +174,23 @@ class AuthServiceTest {
 mvn clean verify
 ```
 
-Pratya runs after tests complete and produces:
+Prathya runs after tests complete and produces:
 
 | Output | Location |
 |--------|----------|
-| HTML report | `target/pratya/index.html` |
-| JSON report | `target/pratya/pratya-report.json` |
+| HTML report | `target/prathya/index.html` |
+| JSON report | `target/prathya/prathya-report.json` |
 | Console summary | Maven log output |
 
 Console output example:
 
 ```
-[INFO] Pratya Report: AUTH
+[INFO] Prathya Report: AUTH
 [INFO]   Requirements: 5/6 covered (83.3%)
 [INFO]   Corner cases: 3/4 covered (75.0%)
 [INFO]   Violations: 1 (1 error, 0 warn)
 [INFO]   Code coverage: 87.2% lines, 71.4% branches
-[INFO]   Reports: /path/to/target/pratya
+[INFO]   Reports: /path/to/target/prathya
 ```
 
 The HTML report shows summary cards for requirement coverage, corner case coverage, and (if JaCoCo is present) line and branch coverage. Hover the info icon on each card for an explanation.
@@ -203,21 +203,21 @@ All parameters can be set in `<configuration>` or as `-D` system properties.
 
 | Property | Default | Description |
 |----------|---------|-------------|
-| `pratya.contractFile` | `${project.basedir}/CONTRACT.yaml` | Path to the contract file |
-| `pratya.skip` | `false` | Skip Pratya execution entirely |
-| `pratya.failOnViolations` | `true` | Fail the build on audit violations |
-| `pratya.minimumRequirementCoverage` | `0` | Minimum requirement coverage % (0 = no threshold) |
-| `pratya.minimumCornerCaseCoverage` | `0` | Minimum corner case coverage % (0 = no threshold) |
-| `pratya.jacocoReportFile` | `${project.build.directory}/site/jacoco/jacoco.xml` | Path to JaCoCo XML report |
-| `pratya.outputDirectory` | `${project.build.directory}/pratya` | Report output directory |
+| `prathya.contractFile` | `${project.basedir}/CONTRACT.yaml` | Path to the contract file |
+| `prathya.skip` | `false` | Skip Prathya execution entirely |
+| `prathya.failOnViolations` | `true` | Fail the build on audit violations |
+| `prathya.minimumRequirementCoverage` | `0` | Minimum requirement coverage % (0 = no threshold) |
+| `prathya.minimumCornerCaseCoverage` | `0` | Minimum corner case coverage % (0 = no threshold) |
+| `prathya.jacocoReportFile` | `${project.build.directory}/site/jacoco/jacoco.xml` | Path to JaCoCo XML report |
+| `prathya.outputDirectory` | `${project.build.directory}/prathya` | Report output directory |
 
 ### Example: CI Gate with Coverage Thresholds
 
 ```xml
 <plugin>
-    <groupId>dev.pratya</groupId>
-    <artifactId>pratya-maven-plugin</artifactId>
-    <version>${pratya.version}</version>
+    <groupId>dev.prathya</groupId>
+    <artifactId>prathya-maven-plugin</artifactId>
+    <version>${prathya.version}</version>
     <configuration>
         <failOnViolations>true</failOnViolations>
         <minimumRequirementCoverage>80</minimumRequirementCoverage>
@@ -248,17 +248,17 @@ All parameters can be set in `<configuration>` or as `-D` system properties.
 
 | Goal | Phase | Description |
 |------|-------|-------------|
-| `pratya:verify` | `verify` | Full pipeline: parse contract, scan tests, compute coverage, audit, generate reports. Fails the build if `failOnViolations` is true and violations exist. |
-| `pratya:audit` | (manual) | Run the audit engine only — reports violations without generating HTML/JSON. |
-| `pratya:report` | `verify` | Generate reports only (no build failure on violations). |
-| `pratya:run` | (manual) | Run tests for a specific requirement: `mvn pratya:run -Dpratya.requirementId=AUTH-001` |
-| `pratya:aggregate` | `verify` | Aggregate reports across a multi-module reactor. |
+| `prathya:verify` | `verify` | Full pipeline: parse contract, scan tests, compute coverage, audit, generate reports. Fails the build if `failOnViolations` is true and violations exist. |
+| `prathya:audit` | (manual) | Run the audit engine only — reports violations without generating HTML/JSON. |
+| `prathya:report` | `verify` | Generate reports only (no build failure on violations). |
+| `prathya:run` | (manual) | Run tests for a specific requirement: `mvn prathya:run -Dprathya.requirementId=AUTH-001` |
+| `prathya:aggregate` | `verify` | Aggregate reports across a multi-module reactor. |
 
 ---
 
 ## Audit Rules
 
-Pratya audits your contract and test mappings and reports violations:
+Prathya audits your contract and test mappings and reports violations:
 
 | Rule | Severity | Trigger |
 |------|----------|---------|
@@ -278,9 +278,9 @@ For multi-module Maven projects, each module gets its own `CONTRACT.yaml` and `@
 ```xml
 <!-- Parent POM -->
 <plugin>
-    <groupId>dev.pratya</groupId>
-    <artifactId>pratya-maven-plugin</artifactId>
-    <version>${pratya.version}</version>
+    <groupId>dev.prathya</groupId>
+    <artifactId>prathya-maven-plugin</artifactId>
+    <version>${prathya.version}</version>
     <executions>
         <execution>
             <goals><goal>aggregate</goal></goals>
@@ -289,7 +289,7 @@ For multi-module Maven projects, each module gets its own `CONTRACT.yaml` and `@
 </plugin>
 ```
 
-Aggregate report output: `target/pratya-aggregate/index.html`
+Aggregate report output: `target/prathya-aggregate/index.html`
 
 ---
 

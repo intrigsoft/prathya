@@ -4,20 +4,20 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>dev.pratya</groupId>
-    <artifactId>pratya</artifactId>
+    <groupId>dev.prathya</groupId>
+    <artifactId>prathya</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
-    <name>pratya</name>
+    <name>prathya</name>
     <description>Contract-driven requirement coverage for Java</description>
 
     <modules>
-        <module>pratya-annotations</module>
-        <module>pratya-core</module>
-        <module>pratya-maven-plugin</module>
-        <module>pratya-gradle-plugin</module>
-        <module>pratya-mcp-server</module>
+        <module>prathya-annotations</module>
+        <module>prathya-core</module>
+        <module>prathya-maven-plugin</module>
+        <module>prathya-gradle-plugin</module>
+        <module>prathya-mcp-server</module>
     </modules>
 
     <properties>
@@ -49,15 +49,15 @@
                 <scope>import</scope>
             </dependency>
 
-            <!-- pratya modules -->
+            <!-- prathya modules -->
             <dependency>
-                <groupId>dev.pratya</groupId>
-                <artifactId>pratya-annotations</artifactId>
+                <groupId>dev.prathya</groupId>
+                <artifactId>prathya-annotations</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>dev.pratya</groupId>
-                <artifactId>pratya-core</artifactId>
+                <groupId>dev.prathya</groupId>
+                <artifactId>prathya-core</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

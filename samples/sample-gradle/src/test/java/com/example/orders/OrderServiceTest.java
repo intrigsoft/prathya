@@ -1,6 +1,6 @@
 package com.example.orders;
 
-import dev.pratya.annotations.Requirement;
+import dev.prathya.annotations.Requirement;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
