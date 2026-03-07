@@ -133,6 +133,56 @@ class DefaultAuditEngineTest {
                 .filter(v -> v.getType() == ViolationType.UNCOVERED_REQUIREMENT).count());
     }
 
+    @Test
+    void deprecatedReference_notOrphaned() {
+        // When a test references a deprecated requirement, the audit should produce
+        // DEPRECATED_REFERENCE — NOT ORPHANED_ANNOTATION. This verifies that
+        // the full contract (with deprecated reqs) is passed to the engine.
+        ModuleContract contract = buildContract(
+                req("REQ-001", RequirementStatus.DEPRECATED),
+                req("REQ-002", RequirementStatus.APPROVED)
+        );
+        List<TraceEntry> traces = List.of(
+                trace("TestA", "test1", "REQ-001"),
+                trace("TestB", "test2", "REQ-002")
+        );
+
+        List<Violation> violations = engine.audit(contract, traces);
+
+        assertTrue(violations.stream().anyMatch(v -> v.getType() == ViolationType.DEPRECATED_REFERENCE),
+                "Should detect DEPRECATED_REFERENCE");
+        assertFalse(violations.stream().anyMatch(v -> v.getType() == ViolationType.ORPHANED_ANNOTATION),
+                "Should NOT produce ORPHANED_ANNOTATION for deprecated requirement");
+    }
+
+    @Test
+    void uncoveredCornerCase_withTestEnvironment_producesInfoViolation() {
+        RequirementDefinition req = req("REQ-001", RequirementStatus.APPROVED,
+                new CornerCase("REQ-001-CC-001", "Requires full server", TestEnvironment.FULL_SERVER),
+                cc("REQ-001-CC-002"));
+        ModuleContract contract = buildContract(req);
+
+        List<TraceEntry> traces = List.of(
+                trace("TestA", "test1", "REQ-001")
+                // Both CC-001 and CC-002 are uncovered
+        );
+
+        List<Violation> violations = engine.audit(contract, traces);
+
+        // CC-001 has testEnvironment=FULL_SERVER → UNCOVERED_CORNER_CASE_ENVIRONMENT (INFO)
+        assertTrue(violations.stream().anyMatch(v ->
+                        v.getType() == ViolationType.UNCOVERED_CORNER_CASE_ENVIRONMENT
+                                && v.getCornerCaseId().equals("REQ-001-CC-001")),
+                "Should produce UNCOVERED_CORNER_CASE_ENVIRONMENT for CC with testEnvironment");
+        assertEquals(Severity.INFO, ViolationType.UNCOVERED_CORNER_CASE_ENVIRONMENT.getSeverity());
+
+        // CC-002 has no testEnvironment → UNCOVERED_CORNER_CASE (WARN)
+        assertTrue(violations.stream().anyMatch(v ->
+                        v.getType() == ViolationType.UNCOVERED_CORNER_CASE
+                                && v.getCornerCaseId().equals("REQ-001-CC-002")),
+                "Should produce UNCOVERED_CORNER_CASE for CC without testEnvironment");
+    }
+
     // --- helpers ---
 
     private ModuleContract buildContract(RequirementDefinition... reqs) {

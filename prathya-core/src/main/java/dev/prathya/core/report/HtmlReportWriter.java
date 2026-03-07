@@ -180,6 +180,10 @@ public class HtmlReportWriter implements ReportWriter {
                 if (ccDef != null) {
                     ccMap.put("description", ccDef.getDescription());
                     ccMap.put("hasDescription", ccDef.getDescription() != null && !ccDef.getDescription().isEmpty());
+                    ccMap.put("hasTestEnvironment", ccDef.getTestEnvironment() != null);
+                    if (ccDef.getTestEnvironment() != null) {
+                        ccMap.put("testEnvironment", ccDef.getTestEnvironment().toYaml());
+                    }
                 }
 
                 // CC test details

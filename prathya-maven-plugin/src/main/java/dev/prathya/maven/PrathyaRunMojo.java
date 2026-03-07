@@ -29,8 +29,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Mojo(name = "run", threadSafe = true)
 public class PrathyaRunMojo extends AbstractPrathyaMojo {
@@ -70,28 +68,20 @@ public class PrathyaRunMojo extends AbstractPrathyaMojo {
 
         try {
             // 1. Parse CONTRACT.yaml
-            ModuleContract contract = new YamlRequirementParser().parse(Path.of(contractFile));
+            ModuleContract fullContract = new YamlRequirementParser().parse(Path.of(contractFile));
 
-            // 2. Filter excluded statuses
-            if (excludeStatuses != null && !excludeStatuses.isEmpty()) {
-                Set<RequirementStatus> excluded = excludeStatuses.stream()
-                        .map(s -> RequirementStatus.valueOf(s.toUpperCase()))
-                        .collect(Collectors.toSet());
-                List<RequirementDefinition> filtered = contract.getRequirements().stream()
-                        .filter(r -> !excluded.contains(r.getStatus()))
-                        .collect(Collectors.toList());
-                contract = new ModuleContract(contract.getModule(), filtered);
-            }
+            // 2. Filter inactive and user-excluded statuses for coverage/test resolution
+            ModuleContract filteredContract = filterContract(fullContract);
 
             // 3. Scan annotations
             Path testDir = Path.of(testClassesDirectory);
             Path classesDir = Path.of(classesDirectory);
             List<TraceEntry> traces = new ReflectionAnnotationScanner().scan(List.of(testDir), List.of(classesDir));
 
-            // 4. Resolve tests
+            // 4. Resolve tests (uses filtered contract)
             PrathyaTestRunner runner = new DefaultPrathyaTestRunner();
             RequirementStatus parsedStatus = RequirementStatus.valueOf(statusFilter.toUpperCase());
-            List<TestMethod> tests = runner.resolveTests(contract, traces, parsedStatus, requirementId);
+            List<TestMethod> tests = runner.resolveTests(filteredContract, traces, parsedStatus, requirementId);
 
             if (tests.isEmpty()) {
                 getLog().info("No tests resolved for the given filters. Skipping test execution.");
@@ -201,9 +191,9 @@ public class PrathyaRunMojo extends AbstractPrathyaMojo {
                 }
             }
 
-            // 9. Compute three-state coverage
+            // 9. Compute three-state coverage (uses filtered contract)
             DefaultCoverageComputer coverageComputer = new DefaultCoverageComputer();
-            CoverageMatrix matrix = coverageComputer.compute(contract, traces, testRunResult);
+            CoverageMatrix matrix = coverageComputer.compute(filteredContract, traces, testRunResult);
 
             // Set code coverage data on the matrix
             if (totalCodeCoverage != null || contractCodeCoverage != null) {
@@ -213,9 +203,9 @@ public class PrathyaRunMojo extends AbstractPrathyaMojo {
                         matrix.getContract(), totalCodeCoverage, contractCodeCoverage);
             }
 
-            // 11. Audit + threshold checks
+            // 11. Audit + threshold checks (uses full contract for deprecated/superseded detection)
             AuditEngine auditEngine = new DefaultAuditEngine();
-            List<Violation> violations = new ArrayList<>(auditEngine.audit(contract, traces));
+            List<Violation> violations = new ArrayList<>(auditEngine.audit(fullContract, traces));
 
             if (minimumRequirementCoverage > 0
                     && matrix.getSummary().getRequirementCoverage() < minimumRequirementCoverage) {

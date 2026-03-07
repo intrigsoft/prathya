@@ -72,10 +72,18 @@ public class DefaultAuditEngine implements AuditEngine {
 
             for (CornerCase cc : req.getCornerCases()) {
                 if (!idToTests.containsKey(cc.getId())) {
-                    violations.add(new Violation(
-                            ViolationType.UNCOVERED_CORNER_CASE,
-                            req.getId(), cc.getId(),
-                            "Corner case '" + cc.getId() + "' has no mapped test"));
+                    if (cc.getTestEnvironment() != null) {
+                        violations.add(new Violation(
+                                ViolationType.UNCOVERED_CORNER_CASE_ENVIRONMENT,
+                                req.getId(), cc.getId(),
+                                "Corner case '" + cc.getId() + "' has no mapped test"
+                                        + " (requires " + cc.getTestEnvironment().toYaml() + " environment)"));
+                    } else {
+                        violations.add(new Violation(
+                                ViolationType.UNCOVERED_CORNER_CASE,
+                                req.getId(), cc.getId(),
+                                "Corner case '" + cc.getId() + "' has no mapped test"));
+                    }
                 }
             }
         }

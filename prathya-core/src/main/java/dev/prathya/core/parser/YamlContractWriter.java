@@ -83,6 +83,9 @@ public class YamlContractWriter implements ContractWriter {
                 Map<String, Object> ccMap = new LinkedHashMap<>();
                 putIfNotNull(ccMap, "id", cc.getId());
                 putIfNotNull(ccMap, "description", cc.getDescription());
+                if (cc.getTestEnvironment() != null) {
+                    ccMap.put("test_environment", cc.getTestEnvironment().toYaml());
+                }
                 ccList.add(ccMap);
             }
             m.put("corner_cases", ccList);

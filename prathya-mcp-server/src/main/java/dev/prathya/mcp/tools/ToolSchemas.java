@@ -91,6 +91,7 @@ public final class ToolSchemas {
                 "req_id":      { "type": "string", "description": "Parent requirement ID (e.g. AUTH-001). The corner case will be added under this requirement." },
                 "description": { "type": "string", "description": "Corner case description — the edge condition, error path, or boundary behavior to verify. Corner cases are first-class citizens with independent coverage tracking." },
                 "id":          { "type": "string", "description": "Explicit corner case ID following the {REQ_ID}-CC-{N} convention (e.g. AUTH-001-CC-003). Auto-generated if omitted. Once assigned, IDs are permanent." },
+                "test_environment": { "type": "string", "enum": ["unit", "integration", "full-server"], "description": "Required test environment for this corner case. When set, uncovered corner cases produce an INFO-level notice instead of a WARN." },
                 "contract_file": { "type": "string", "description": "Path to CONTRACT.yaml file. Defaults to CONTRACT.yaml in working directory if omitted." }
               },
               "required": ["req_id", "description"]
@@ -104,9 +105,10 @@ public final class ToolSchemas {
                 "req_id":      { "type": "string", "description": "Parent requirement ID (e.g. AUTH-001)." },
                 "cc_id":       { "type": "string", "description": "Corner case ID to update (e.g. AUTH-001-CC-001). The ID itself never changes." },
                 "description": { "type": "string", "description": "New description for the corner case." },
+                "test_environment": { "type": "string", "enum": ["unit", "integration", "full-server"], "description": "Required test environment for this corner case." },
                 "contract_file": { "type": "string", "description": "Path to CONTRACT.yaml file. Defaults to CONTRACT.yaml in working directory if omitted." }
               },
-              "required": ["req_id", "cc_id", "description"]
+              "required": ["req_id", "cc_id"]
             }
             """;
 

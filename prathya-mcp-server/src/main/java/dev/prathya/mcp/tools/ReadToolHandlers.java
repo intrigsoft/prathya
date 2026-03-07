@@ -118,7 +118,11 @@ public class ReadToolHandlers {
             if (!req.getCornerCases().isEmpty()) {
                 sb.append("Corner Cases:\n");
                 for (CornerCase cc : req.getCornerCases()) {
-                    sb.append("  ").append(cc.getId()).append(": ").append(cc.getDescription()).append("\n");
+                    sb.append("  ").append(cc.getId()).append(": ").append(cc.getDescription());
+                    if (cc.getTestEnvironment() != null) {
+                        sb.append(" [env: ").append(cc.getTestEnvironment().toYaml()).append("]");
+                    }
+                    sb.append("\n");
                 }
             }
             if (req.getChangelog() != null && !req.getChangelog().isEmpty()) {
@@ -140,6 +144,7 @@ public class ReadToolHandlers {
 
     public McpSchema.CallToolResult listUntested(Map<String, Object> args) {
         try {
+            String warning = scanWarning();
             ModuleContract contract = loadContract(args);
             List<TraceEntry> traces = scanTraces();
             CoverageMatrix matrix = coverageComputer.compute(contract, traces);
@@ -153,9 +158,9 @@ public class ReadToolHandlers {
             }
 
             if (untested.isEmpty()) {
-                return textResult("All active requirements have tests.");
+                return textResult(warning + "All active requirements have tests.");
             }
-            StringBuilder sb = new StringBuilder("Untested requirements:\n");
+            StringBuilder sb = new StringBuilder(warning).append("Untested requirements:\n");
             for (String id : untested) {
                 sb.append("  ").append(id).append("\n");
             }
@@ -169,11 +174,12 @@ public class ReadToolHandlers {
 
     public McpSchema.CallToolResult getCoverageMatrix(Map<String, Object> args) {
         try {
+            String warning = scanWarning();
             ModuleContract contract = loadContract(args);
             List<TraceEntry> traces = scanTraces();
             CoverageMatrix matrix = coverageComputer.compute(contract, traces);
 
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder(warning);
             CoverageSummary summary = matrix.getSummary();
             sb.append("Coverage Summary:\n");
             sb.append("  Requirements: ").append(summary.getCoveredRequirements())
@@ -192,7 +198,11 @@ public class ReadToolHandlers {
                 sb.append("\n");
                 for (CornerCaseCoverage ccc : rc.getCornerCases()) {
                     sb.append("  ").append(ccc.getId()).append(": ")
-                      .append(ccc.isCovered() ? "COVERED" : "UNCOVERED").append("\n");
+                      .append(ccc.isCovered() ? "COVERED" : "UNCOVERED");
+                    if (ccc.getTestEnvironment() != null) {
+                        sb.append(" [env: ").append(ccc.getTestEnvironment()).append("]");
+                    }
+                    sb.append("\n");
                 }
             }
             return textResult(sb.toString());
@@ -205,14 +215,15 @@ public class ReadToolHandlers {
 
     public McpSchema.CallToolResult runAudit(Map<String, Object> args) {
         try {
+            String warning = scanWarning();
             ModuleContract contract = loadContract(args);
             List<TraceEntry> traces = scanTraces();
             List<Violation> violations = auditEngine.audit(contract, traces);
 
             if (violations.isEmpty()) {
-                return textResult("Audit passed — no violations found.");
+                return textResult(warning + "Audit passed — no violations found.");
             }
-            StringBuilder sb = new StringBuilder("Audit found " + violations.size() + " violation(s):\n");
+            StringBuilder sb = new StringBuilder(warning).append("Audit found " + violations.size() + " violation(s):\n");
             for (Violation v : violations) {
                 sb.append("  [").append(v.getType().getSeverity()).append("] ")
                   .append(v.getType()).append(": ").append(v.getMessage()).append("\n");
@@ -290,6 +301,16 @@ public class ReadToolHandlers {
                 List.of(config.getTestClassesDir()),
                 config.getAnnotationScanClasspath()
         );
+    }
+
+    private String scanWarning() {
+        if (config.getTestClassesDir() == null) {
+            return "WARNING: No test-classes directory found. "
+                    + "Annotation scanning is disabled — audit, coverage, and untested results will be empty. "
+                    + "Use --test-classes to specify the directory, or build the project so that "
+                    + "target/test-classes (Maven) or build/classes/java/test (Gradle) exists.\n\n";
+        }
+        return "";
     }
 
     static McpSchema.CallToolResult textResult(String text) {

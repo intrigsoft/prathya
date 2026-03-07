@@ -102,6 +102,9 @@ public class JsonReportWriter implements ReportWriter {
                 } else {
                     ccNode.put("passing", cc.getPassing());
                 }
+                if (cc.getTestEnvironment() != null) {
+                    ccNode.put("testEnvironment", cc.getTestEnvironment());
+                }
                 ArrayNode ccTests = ccNode.putArray("tests");
                 for (String test : cc.getTests()) {
                     ccTests.add(test);

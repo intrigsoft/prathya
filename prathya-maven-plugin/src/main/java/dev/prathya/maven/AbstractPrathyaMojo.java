@@ -62,18 +62,10 @@ public abstract class AbstractPrathyaMojo extends AbstractMojo {
     protected PipelineResult runPipeline() throws PrathyaException {
         // 1. Parse
         RequirementParser parser = new YamlRequirementParser();
-        ModuleContract contract = parser.parse(Path.of(contractFile));
+        ModuleContract fullContract = parser.parse(Path.of(contractFile));
 
-        // 2. Filter excluded statuses
-        if (excludeStatuses != null && !excludeStatuses.isEmpty()) {
-            Set<RequirementStatus> excluded = excludeStatuses.stream()
-                    .map(s -> RequirementStatus.valueOf(s.toUpperCase()))
-                    .collect(Collectors.toSet());
-            List<RequirementDefinition> filtered = contract.getRequirements().stream()
-                    .filter(r -> !excluded.contains(r.getStatus()))
-                    .collect(Collectors.toList());
-            contract = new ModuleContract(contract.getModule(), filtered);
-        }
+        // 2. Filter inactive and user-excluded statuses for coverage computation
+        ModuleContract filteredContract = filterContract(fullContract);
 
         // 3. Scan — include full test classpath so nested/inner classes can be loaded
         AnnotationScanner scanner = new ReflectionAnnotationScanner();
@@ -94,9 +86,9 @@ public abstract class AbstractPrathyaMojo extends AbstractMojo {
         }
         List<TraceEntry> traces = scanner.scan(List.of(testDir), additionalClasspath);
 
-        // 4. Compute coverage
+        // 4. Compute coverage (uses filtered contract — excludes deprecated/superseded)
         CoverageComputer coverageComputer = new DefaultCoverageComputer();
-        CoverageMatrix matrix = coverageComputer.compute(contract, traces);
+        CoverageMatrix matrix = coverageComputer.compute(filteredContract, traces);
 
         // 4b. Read JaCoCo code coverage if available
         CodeCoverageSummary codeCoverage = null;
@@ -116,9 +108,9 @@ public abstract class AbstractPrathyaMojo extends AbstractMojo {
                     matrix.getContract(), codeCoverage);
         }
 
-        // 5. Audit
+        // 5. Audit (uses full contract — so deprecated/superseded references are detected)
         AuditEngine auditEngine = new DefaultAuditEngine();
-        List<Violation> violations = new ArrayList<>(auditEngine.audit(contract, traces));
+        List<Violation> violations = new ArrayList<>(auditEngine.audit(fullContract, traces));
 
         // 6. Check requirement coverage threshold
         if (minimumRequirementCoverage > 0
@@ -141,6 +133,26 @@ public abstract class AbstractPrathyaMojo extends AbstractMojo {
         }
 
         return new PipelineResult(matrix, violations);
+    }
+
+    /**
+     * Filters out inactive requirements (DEPRECATED, SUPERSEDED) and any user-configured
+     * excludeStatuses from the contract. Inactive requirements are always excluded — they
+     * should not participate in test resolution, coverage computation, or reports.
+     */
+    protected ModuleContract filterContract(ModuleContract contract) {
+        Set<RequirementStatus> excluded = Set.of(RequirementStatus.DEPRECATED, RequirementStatus.SUPERSEDED);
+        if (excludeStatuses != null && !excludeStatuses.isEmpty()) {
+            excluded = new java.util.HashSet<>(excluded);
+            for (String s : excludeStatuses) {
+                excluded.add(RequirementStatus.valueOf(s.toUpperCase()));
+            }
+        }
+        Set<RequirementStatus> finalExcluded = excluded;
+        List<RequirementDefinition> filtered = contract.getRequirements().stream()
+                .filter(r -> !finalExcluded.contains(r.getStatus()))
+                .collect(Collectors.toList());
+        return new ModuleContract(contract.getModule(), filtered);
     }
 
     protected boolean shouldSkip() {

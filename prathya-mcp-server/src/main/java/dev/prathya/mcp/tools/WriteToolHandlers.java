@@ -2,6 +2,7 @@ package dev.prathya.mcp.tools;
 
 import dev.prathya.core.PrathyaException;
 import dev.prathya.core.model.*;
+import dev.prathya.core.model.TestEnvironment;
 import dev.prathya.core.mutator.ContractMutator;
 import dev.prathya.core.mutator.DefaultContractMutator;
 import dev.prathya.core.mutator.RequirementUpdate;
@@ -100,8 +101,10 @@ public class WriteToolHandlers {
             String reqId = requireStringArg(args, "req_id");
             String description = requireStringArg(args, "description");
             String ccId = stringArg(args, "id");
+            String envStr = stringArg(args, "test_environment");
+            TestEnvironment env = envStr != null ? TestEnvironment.fromYaml(envStr) : null;
 
-            mutator.addCornerCase(contract, reqId, ccId, description);
+            mutator.addCornerCase(contract, reqId, ccId, description, env);
             saveContract(contract, args);
 
             // Find the newly added CC to report its ID
@@ -121,9 +124,11 @@ public class WriteToolHandlers {
             ModuleContract contract = loadContract(args);
             String reqId = requireStringArg(args, "req_id");
             String ccId = requireStringArg(args, "cc_id");
-            String description = requireStringArg(args, "description");
+            String description = stringArg(args, "description");
+            String envStr = stringArg(args, "test_environment");
+            TestEnvironment env = envStr != null ? TestEnvironment.fromYaml(envStr) : null;
 
-            mutator.updateCornerCase(contract, reqId, ccId, description);
+            mutator.updateCornerCase(contract, reqId, ccId, description, env);
             saveContract(contract, args);
 
             return textResult("Updated corner case " + ccId);

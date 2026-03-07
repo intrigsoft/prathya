@@ -41,7 +41,8 @@ public class DefaultCoverageComputer implements CoverageComputer {
             for (CornerCase cc : req.getCornerCases()) {
                 List<String> ccTests = idToTests.getOrDefault(cc.getId(), Collections.emptyList());
                 boolean ccCovered = !ccTests.isEmpty();
-                ccCoverages.add(new CornerCaseCoverage(cc.getId(), ccCovered, null, ccTests));
+                String envYaml = cc.getTestEnvironment() != null ? cc.getTestEnvironment().toYaml() : null;
+                ccCoverages.add(new CornerCaseCoverage(cc.getId(), ccCovered, null, ccTests, envYaml));
 
                 if (isActive) {
                     totalCornerCases++;
@@ -111,7 +112,8 @@ public class DefaultCoverageComputer implements CoverageComputer {
                 List<String> ccTests = idToTests.getOrDefault(cc.getId(), Collections.emptyList());
                 boolean ccCovered = !ccTests.isEmpty();
                 Boolean ccPassing = computePassing(ccTests, resultMap);
-                ccCoverages.add(new CornerCaseCoverage(cc.getId(), ccCovered, ccPassing, ccTests));
+                String envYaml = cc.getTestEnvironment() != null ? cc.getTestEnvironment().toYaml() : null;
+                ccCoverages.add(new CornerCaseCoverage(cc.getId(), ccCovered, ccPassing, ccTests, envYaml));
 
                 if (isActive) {
                     totalCornerCases++;

@@ -111,6 +111,37 @@ class YamlContractWriterTest {
         assertTrue(content.contains("requirements:"));
     }
 
+    @Test
+    void roundTrip_testEnvironment(@TempDir Path tmp) throws Exception {
+        ModuleContract contract = minimalContract();
+        RequirementDefinition req = contract.getRequirements().get(0);
+        req.setCornerCases(new java.util.ArrayList<>(List.of(
+                new CornerCase("TST-001-CC-001", "Unit test case", TestEnvironment.UNIT),
+                new CornerCase("TST-001-CC-002", "Integration test case", TestEnvironment.INTEGRATION),
+                new CornerCase("TST-001-CC-003", "Full server case", TestEnvironment.FULL_SERVER),
+                new CornerCase("TST-001-CC-004", "No env specified")
+        )));
+
+        // Write
+        Path output = tmp.resolve("contract-env.yaml");
+        writer.write(contract, output);
+
+        // Verify YAML contains test_environment
+        String yaml = Files.readString(output);
+        assertTrue(yaml.contains("test_environment: unit"), "Should write unit environment");
+        assertTrue(yaml.contains("test_environment: integration"), "Should write integration environment");
+        assertTrue(yaml.contains("test_environment: full-server"), "Should write full-server environment");
+
+        // Re-parse and verify
+        ModuleContract reparsed = parser.parse(output);
+        List<CornerCase> ccs = reparsed.getRequirements().get(0).getCornerCases();
+        assertEquals(4, ccs.size());
+        assertEquals(TestEnvironment.UNIT, ccs.get(0).getTestEnvironment());
+        assertEquals(TestEnvironment.INTEGRATION, ccs.get(1).getTestEnvironment());
+        assertEquals(TestEnvironment.FULL_SERVER, ccs.get(2).getTestEnvironment());
+        assertNull(ccs.get(3).getTestEnvironment());
+    }
+
     private ModuleContract minimalContract() {
         ModuleInfo module = new ModuleInfo();
         module.setId("TST");

@@ -6,6 +6,7 @@ public enum ViolationType {
     UNCOVERED_CORNER_CASE(Severity.WARN),
     DEPRECATED_REFERENCE(Severity.WARN),
     SUPERSEDED_REFERENCE(Severity.WARN),
+    UNCOVERED_CORNER_CASE_ENVIRONMENT(Severity.INFO),
     COVERAGE_BELOW_THRESHOLD(Severity.ERROR);
 
     private final Severity severity;

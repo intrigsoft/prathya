@@ -1,5 +1,6 @@
 package dev.prathya.mcp;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
@@ -36,6 +37,8 @@ public class PrathyaServerConfig {
             config.contractFile = Paths.get("CONTRACT.yaml");
         }
 
+        config.autoDetectDirectories();
+
         return config;
     }
 
@@ -52,5 +55,40 @@ public class PrathyaServerConfig {
             return List.of(classesDir);
         }
         return List.of();
+    }
+
+    /**
+     * Auto-detects test-classes and classes directories from standard Maven/Gradle layouts
+     * relative to the contract file's parent directory, if not explicitly configured.
+     */
+    private void autoDetectDirectories() {
+        if (testClassesDir != null) {
+            return;
+        }
+        Path contractParent = contractFile.toAbsolutePath().getParent();
+        if (contractParent == null) {
+            return;
+        }
+
+        // Try Maven layout
+        Path mavenTestClasses = contractParent.resolve("target/test-classes");
+        Path mavenClasses = contractParent.resolve("target/classes");
+        if (Files.isDirectory(mavenTestClasses)) {
+            testClassesDir = mavenTestClasses;
+            if (classesDir == null && Files.isDirectory(mavenClasses)) {
+                classesDir = mavenClasses;
+            }
+            return;
+        }
+
+        // Try Gradle layout
+        Path gradleTestClasses = contractParent.resolve("build/classes/java/test");
+        Path gradleClasses = contractParent.resolve("build/classes/java/main");
+        if (Files.isDirectory(gradleTestClasses)) {
+            testClassesDir = gradleTestClasses;
+            if (classesDir == null && Files.isDirectory(gradleClasses)) {
+                classesDir = gradleClasses;
+            }
+        }
     }
 }

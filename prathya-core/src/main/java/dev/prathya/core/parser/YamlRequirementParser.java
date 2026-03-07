@@ -117,7 +117,9 @@ public class YamlRequirementParser implements RequirementParser {
                     String ccId = requireString(ccMap, "id", "corner_case in " + id);
                     validateCornerCaseId(ccId, moduleId);
                     String desc = optionalString(ccMap, "description");
-                    ccs.add(new CornerCase(ccId, desc));
+                    String envStr = optionalString(ccMap, "test_environment");
+                    TestEnvironment env = envStr != null ? TestEnvironment.fromYaml(envStr) : null;
+                    ccs.add(new CornerCase(ccId, desc, env));
                 }
             }
             req.setCornerCases(ccs);

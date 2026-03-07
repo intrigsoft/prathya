@@ -3,6 +3,7 @@ package dev.prathya.core.mutator;
 import dev.prathya.core.PrathyaException;
 import dev.prathya.core.model.ModuleContract;
 import dev.prathya.core.model.RequirementDefinition;
+import dev.prathya.core.model.TestEnvironment;
 
 /**
  * Mutation operations on a {@link ModuleContract} with validation.
@@ -28,9 +29,25 @@ public interface ContractMutator {
     ModuleContract addCornerCase(ModuleContract contract, String reqId, String ccId, String description) throws PrathyaException;
 
     /**
+     * Adds a corner case with an optional test environment.
+     */
+    default ModuleContract addCornerCase(ModuleContract contract, String reqId, String ccId,
+                                         String description, TestEnvironment testEnvironment) throws PrathyaException {
+        return addCornerCase(contract, reqId, ccId, description);
+    }
+
+    /**
      * Updates the description of an existing corner case.
      */
     ModuleContract updateCornerCase(ModuleContract contract, String reqId, String ccId, String newDescription) throws PrathyaException;
+
+    /**
+     * Updates an existing corner case's description and/or test environment.
+     */
+    default ModuleContract updateCornerCase(ModuleContract contract, String reqId, String ccId,
+                                            String newDescription, TestEnvironment testEnvironment) throws PrathyaException {
+        return updateCornerCase(contract, reqId, ccId, newDescription);
+    }
 
     /**
      * Deprecates an APPROVED requirement.

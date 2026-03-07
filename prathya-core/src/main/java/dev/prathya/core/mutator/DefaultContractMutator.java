@@ -67,6 +67,12 @@ public class DefaultContractMutator implements ContractMutator {
 
     @Override
     public ModuleContract addCornerCase(ModuleContract contract, String reqId, String ccId, String description) throws PrathyaException {
+        return addCornerCase(contract, reqId, ccId, description, null);
+    }
+
+    @Override
+    public ModuleContract addCornerCase(ModuleContract contract, String reqId, String ccId,
+                                        String description, TestEnvironment testEnvironment) throws PrathyaException {
         RequirementDefinition req = findRequirement(contract, reqId);
         String moduleId = contract.getModule().getId();
 
@@ -84,15 +90,26 @@ public class DefaultContractMutator implements ContractMutator {
         if (req.getCornerCases() == null) {
             req.setCornerCases(new ArrayList<>());
         }
-        req.getCornerCases().add(new CornerCase(ccId, description));
+        req.getCornerCases().add(new CornerCase(ccId, description, testEnvironment));
         return contract;
     }
 
     @Override
     public ModuleContract updateCornerCase(ModuleContract contract, String reqId, String ccId, String newDescription) throws PrathyaException {
+        return updateCornerCase(contract, reqId, ccId, newDescription, null);
+    }
+
+    @Override
+    public ModuleContract updateCornerCase(ModuleContract contract, String reqId, String ccId,
+                                           String newDescription, TestEnvironment testEnvironment) throws PrathyaException {
         RequirementDefinition req = findRequirement(contract, reqId);
         CornerCase cc = findCornerCase(req, ccId);
-        cc.setDescription(newDescription);
+        if (newDescription != null) {
+            cc.setDescription(newDescription);
+        }
+        if (testEnvironment != null) {
+            cc.setTestEnvironment(testEnvironment);
+        }
         return contract;
     }
 

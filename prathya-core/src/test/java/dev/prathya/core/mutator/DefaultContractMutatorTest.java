@@ -199,6 +199,27 @@ class DefaultContractMutatorTest {
                 () -> mutator.updateCornerCase(contract, "ORD-001", "ORD-001-CC-999", "Nope"));
     }
 
+    @Test
+    void addCornerCase_withTestEnvironment() throws Exception {
+        mutator.addCornerCase(contract, "ORD-001", "ORD-001-CC-002",
+                "Requires full server", TestEnvironment.FULL_SERVER);
+
+        CornerCase added = contract.getRequirements().get(0).getCornerCases().get(1);
+        assertEquals("ORD-001-CC-002", added.getId());
+        assertEquals("Requires full server", added.getDescription());
+        assertEquals(TestEnvironment.FULL_SERVER, added.getTestEnvironment());
+    }
+
+    @Test
+    void updateCornerCase_withTestEnvironment() throws Exception {
+        mutator.updateCornerCase(contract, "ORD-001", "ORD-001-CC-001",
+                null, TestEnvironment.INTEGRATION);
+
+        CornerCase cc = contract.getRequirements().get(0).getCornerCases().get(0);
+        assertEquals("Empty list", cc.getDescription()); // unchanged
+        assertEquals(TestEnvironment.INTEGRATION, cc.getTestEnvironment());
+    }
+
     // ── deprecateRequirement ──
 
     @Test
