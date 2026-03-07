@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+         <loc>https://intrigsoft.github.io/prathya/</loc>
+         <lastmod>2026-03-07</lastmod>
+    </url>
+    <url>
+         <loc>https://intrigsoft.github.io/prathya/audit-rules/</loc>
+         <lastmod>2026-03-07</lastmod>
+    </url>
+    <url>
+         <loc>https://intrigsoft.github.io/prathya/concepts/</loc>
+         <lastmod>2026-03-07</lastmod>
+    </url>
+    <url>
+         <loc>https://intrigsoft.github.io/prathya/contract-format/</loc>
+         <lastmod>2026-03-07</lastmod>
+    </url>
+    <url>
+         <loc>https://intrigsoft.github.io/prathya/gradle-plugin/</loc>
+         <lastmod>2026-03-07</lastmod>
+    </url>
+    <url>
+         <loc>https://intrigsoft.github.io/prathya/maven-plugin/</loc>
+         <lastmod>2026-03-07</lastmod>
+    </url>
+    <url>
+         <loc>https://intrigsoft.github.io/prathya/mcp-server/</loc>
+         <lastmod>2026-03-07</lastmod>
+    </url>
+    <url>
+         <loc>https://intrigsoft.github.io/prathya/roadmap/</loc>
+         <lastmod>2026-03-07</lastmod>
+    </url>
+</urlset>
