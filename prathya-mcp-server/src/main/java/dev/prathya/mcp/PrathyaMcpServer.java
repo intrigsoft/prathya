@@ -23,6 +23,7 @@ public class PrathyaMcpServer {
                 .capabilities(ServerCapabilities.builder()
                         .tools(true)
                         .build())
+                .instructions(ServerInstructions.INSTRUCTIONS)
                 .build();
 
         PrathyaToolRegistry registry = new PrathyaToolRegistry(config);
