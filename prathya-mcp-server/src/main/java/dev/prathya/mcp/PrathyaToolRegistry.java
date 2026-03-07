@@ -28,7 +28,7 @@ public class PrathyaToolRegistry {
         // Read tools (7)
         register(server, "get_contract",
                 "Get the full contract summary (module info + all requirements)",
-                ToolSchemas.EMPTY,
+                ToolSchemas.CONTRACT_FILE_ONLY,
                 read::getContract);
 
         register(server, "list_requirements",
@@ -43,22 +43,22 @@ public class PrathyaToolRegistry {
 
         register(server, "list_untested",
                 "List requirements that have no test coverage (requires --test-classes)",
-                ToolSchemas.EMPTY,
+                ToolSchemas.CONTRACT_FILE_ONLY,
                 read::listUntested);
 
         register(server, "get_coverage_matrix",
                 "Get the full coverage matrix showing which requirements and corner cases are tested",
-                ToolSchemas.EMPTY,
+                ToolSchemas.CONTRACT_FILE_ONLY,
                 read::getCoverageMatrix);
 
         register(server, "run_audit",
                 "Run the audit engine to find violations (orphaned annotations, uncovered requirements, etc.)",
-                ToolSchemas.EMPTY,
+                ToolSchemas.CONTRACT_FILE_ONLY,
                 read::runAudit);
 
         register(server, "validate_contract",
                 "Validate the CONTRACT.yaml for format errors, duplicate IDs, and consistency",
-                ToolSchemas.EMPTY,
+                ToolSchemas.CONTRACT_FILE_ONLY,
                 read::validateContract);
 
         // Write tools (6)

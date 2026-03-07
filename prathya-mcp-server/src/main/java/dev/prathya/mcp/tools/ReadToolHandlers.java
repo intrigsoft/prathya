@@ -36,7 +36,7 @@ public class ReadToolHandlers {
 
     public McpSchema.CallToolResult getContract(Map<String, Object> args) {
         try {
-            ModuleContract contract = loadContract();
+            ModuleContract contract = loadContract(args);
             StringBuilder sb = new StringBuilder();
             sb.append("Module: ").append(contract.getModule().getId())
               .append(" — ").append(contract.getModule().getName()).append("\n");
@@ -64,7 +64,7 @@ public class ReadToolHandlers {
 
     public McpSchema.CallToolResult listRequirements(Map<String, Object> args) {
         try {
-            ModuleContract contract = loadContract();
+            ModuleContract contract = loadContract(args);
             List<RequirementDefinition> reqs = contract.getRequirements();
 
             String statusFilter = stringArg(args, "status");
@@ -94,7 +94,7 @@ public class ReadToolHandlers {
     public McpSchema.CallToolResult getRequirement(Map<String, Object> args) {
         try {
             String id = requireStringArg(args, "id");
-            ModuleContract contract = loadContract();
+            ModuleContract contract = loadContract(args);
             RequirementDefinition req = contract.getRequirements().stream()
                     .filter(r -> r.getId().equals(id))
                     .findFirst()
@@ -140,7 +140,7 @@ public class ReadToolHandlers {
 
     public McpSchema.CallToolResult listUntested(Map<String, Object> args) {
         try {
-            ModuleContract contract = loadContract();
+            ModuleContract contract = loadContract(args);
             List<TraceEntry> traces = scanTraces();
             CoverageMatrix matrix = coverageComputer.compute(contract, traces);
 
@@ -169,7 +169,7 @@ public class ReadToolHandlers {
 
     public McpSchema.CallToolResult getCoverageMatrix(Map<String, Object> args) {
         try {
-            ModuleContract contract = loadContract();
+            ModuleContract contract = loadContract(args);
             List<TraceEntry> traces = scanTraces();
             CoverageMatrix matrix = coverageComputer.compute(contract, traces);
 
@@ -205,7 +205,7 @@ public class ReadToolHandlers {
 
     public McpSchema.CallToolResult runAudit(Map<String, Object> args) {
         try {
-            ModuleContract contract = loadContract();
+            ModuleContract contract = loadContract(args);
             List<TraceEntry> traces = scanTraces();
             List<Violation> violations = auditEngine.audit(contract, traces);
 
@@ -227,7 +227,7 @@ public class ReadToolHandlers {
 
     public McpSchema.CallToolResult validateContract(Map<String, Object> args) {
         try {
-            ModuleContract contract = loadContract();
+            ModuleContract contract = loadContract(args);
             List<String> issues = new ArrayList<>();
 
             Set<String> ids = new HashSet<>();
@@ -270,8 +270,16 @@ public class ReadToolHandlers {
 
     // ── helpers ──
 
-    private ModuleContract loadContract() throws PrathyaException {
-        return parser.parse(config.getContractFile());
+    private ModuleContract loadContract(Map<String, Object> args) throws PrathyaException {
+        return parser.parse(resolveContractFile(args));
+    }
+
+    private Path resolveContractFile(Map<String, Object> args) {
+        String override = stringArg(args, "contract_file");
+        if (override != null) {
+            return Path.of(override);
+        }
+        return config.getContractFile();
     }
 
     private List<TraceEntry> scanTraces() {

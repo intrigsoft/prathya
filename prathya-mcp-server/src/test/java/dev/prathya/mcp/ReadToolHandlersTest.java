@@ -86,6 +86,25 @@ class ReadToolHandlersTest {
         assertFalse(result.isError());
     }
 
+    @Test
+    void getContract_customContractFile() {
+        // Create handlers with no --contract flag (defaults to CONTRACT.yaml in cwd)
+        ReadToolHandlers defaultHandlers = new ReadToolHandlers(
+                PrathyaServerConfig.parse(new String[]{})
+        );
+
+        // Pass contract_file arg to override
+        URL resource = getClass().getClassLoader().getResource("test-contract.yaml");
+        assertNotNull(resource);
+        McpSchema.CallToolResult result = defaultHandlers.getContract(
+                Map.of("contract_file", Paths.get(resource.getPath()).toString())
+        );
+        assertFalse(result.isError());
+        String text = textContent(result);
+        assertTrue(text.contains("TST"));
+        assertTrue(text.contains("Test Service"));
+    }
+
     private static String textContent(McpSchema.CallToolResult result) {
         return ((McpSchema.TextContent) result.content().get(0)).text();
     }

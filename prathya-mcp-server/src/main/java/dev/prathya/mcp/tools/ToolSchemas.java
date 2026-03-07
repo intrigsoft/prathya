@@ -11,11 +11,25 @@ public final class ToolSchemas {
             {"type": "object", "properties": {}}
             """;
 
+    /**
+     * Schema with only the optional contract_file property.
+     * Used for tools that previously had an empty schema.
+     */
+    public static final String CONTRACT_FILE_ONLY = """
+            {
+              "type": "object",
+              "properties": {
+                "contract_file": { "type": "string", "description": "Path to CONTRACT.yaml file. Defaults to CONTRACT.yaml in working directory if omitted." }
+              }
+            }
+            """;
+
     public static final String GET_REQUIREMENT = """
             {
               "type": "object",
               "properties": {
-                "id": { "type": "string", "description": "Requirement ID (e.g. ORD-001)" }
+                "id": { "type": "string", "description": "Requirement ID (e.g. ORD-001)" },
+                "contract_file": { "type": "string", "description": "Path to CONTRACT.yaml file. Defaults to CONTRACT.yaml in working directory if omitted." }
               },
               "required": ["id"]
             }
@@ -25,7 +39,8 @@ public final class ToolSchemas {
             {
               "type": "object",
               "properties": {
-                "status": { "type": "string", "description": "Filter by status (DRAFT, APPROVED, DEPRECATED, SUPERSEDED)" }
+                "status": { "type": "string", "description": "Filter by status (DRAFT, APPROVED, DEPRECATED, SUPERSEDED)" },
+                "contract_file": { "type": "string", "description": "Path to CONTRACT.yaml file. Defaults to CONTRACT.yaml in working directory if omitted." }
               }
             }
             """;
@@ -42,7 +57,8 @@ public final class ToolSchemas {
                   "type": "array",
                   "items": { "type": "string" },
                   "description": "List of acceptance criteria"
-                }
+                },
+                "contract_file": { "type": "string", "description": "Path to CONTRACT.yaml file. Defaults to CONTRACT.yaml in working directory if omitted." }
               },
               "required": ["title"]
             }
@@ -61,7 +77,8 @@ public final class ToolSchemas {
                   "items": { "type": "string" },
                   "description": "New acceptance criteria"
                 },
-                "note": { "type": "string", "description": "Changelog note for this update" }
+                "note": { "type": "string", "description": "Changelog note for this update" },
+                "contract_file": { "type": "string", "description": "Path to CONTRACT.yaml file. Defaults to CONTRACT.yaml in working directory if omitted." }
               },
               "required": ["id"]
             }
@@ -73,7 +90,8 @@ public final class ToolSchemas {
               "properties": {
                 "req_id":      { "type": "string", "description": "Parent requirement ID" },
                 "description": { "type": "string", "description": "Corner case description" },
-                "id":          { "type": "string", "description": "Optional explicit CC ID (auto-generated if omitted)" }
+                "id":          { "type": "string", "description": "Optional explicit CC ID (auto-generated if omitted)" },
+                "contract_file": { "type": "string", "description": "Path to CONTRACT.yaml file. Defaults to CONTRACT.yaml in working directory if omitted." }
               },
               "required": ["req_id", "description"]
             }
@@ -85,7 +103,8 @@ public final class ToolSchemas {
               "properties": {
                 "req_id":      { "type": "string", "description": "Parent requirement ID" },
                 "cc_id":       { "type": "string", "description": "Corner case ID to update" },
-                "description": { "type": "string", "description": "New description" }
+                "description": { "type": "string", "description": "New description" },
+                "contract_file": { "type": "string", "description": "Path to CONTRACT.yaml file. Defaults to CONTRACT.yaml in working directory if omitted." }
               },
               "required": ["req_id", "cc_id", "description"]
             }
@@ -96,7 +115,8 @@ public final class ToolSchemas {
               "type": "object",
               "properties": {
                 "id":     { "type": "string", "description": "Requirement ID to deprecate" },
-                "reason": { "type": "string", "description": "Reason for deprecation" }
+                "reason": { "type": "string", "description": "Reason for deprecation" },
+                "contract_file": { "type": "string", "description": "Path to CONTRACT.yaml file. Defaults to CONTRACT.yaml in working directory if omitted." }
               },
               "required": ["id"]
             }
@@ -114,7 +134,8 @@ public final class ToolSchemas {
                   "type": "array",
                   "items": { "type": "string" },
                   "description": "Acceptance criteria for replacement"
-                }
+                },
+                "contract_file": { "type": "string", "description": "Path to CONTRACT.yaml file. Defaults to CONTRACT.yaml in working directory if omitted." }
               },
               "required": ["old_id", "title"]
             }

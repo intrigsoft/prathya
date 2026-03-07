@@ -126,6 +126,35 @@ class WriteToolHandlersTest {
     }
 
     @Test
+    void addRequirement_customContractFile() throws Exception {
+        // Copy contract to a different path within tmpDir
+        Path altContract = tmpDir.resolve("alt-contract.yaml");
+        Files.copy(contractPath, altContract);
+
+        // Create handlers with default config (no --contract flag)
+        WriteToolHandlers defaultHandlers = new WriteToolHandlers(
+                PrathyaServerConfig.parse(new String[]{})
+        );
+
+        // Use contract_file arg to point at the alt path
+        McpSchema.CallToolResult result = defaultHandlers.addRequirement(Map.of(
+                "title", "Alt requirement",
+                "contract_file", altContract.toString()
+        ));
+        assertFalse(result.isError());
+        assertTrue(textContent(result).contains("TST-003"));
+
+        // Verify written to alt path, not the default
+        ModuleContract contract = parser.parse(altContract);
+        assertEquals(3, contract.getRequirements().size());
+        assertEquals("Alt requirement", contract.getRequirements().get(2).getTitle());
+
+        // Original contract unchanged
+        ModuleContract original = parser.parse(contractPath);
+        assertEquals(2, original.getRequirements().size());
+    }
+
+    @Test
     void supersedeRequirement() throws Exception {
         McpSchema.CallToolResult result = handlers.supersedeRequirement(Map.of(
                 "old_id", "TST-001",

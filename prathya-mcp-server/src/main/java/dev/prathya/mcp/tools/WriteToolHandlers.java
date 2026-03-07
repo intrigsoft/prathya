@@ -12,6 +12,7 @@ import dev.prathya.core.parser.YamlRequirementParser;
 import dev.prathya.mcp.PrathyaServerConfig;
 import io.modelcontextprotocol.spec.McpSchema;
 
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 
@@ -37,7 +38,7 @@ public class WriteToolHandlers {
 
     public McpSchema.CallToolResult addRequirement(Map<String, Object> args) {
         try {
-            ModuleContract contract = loadContract();
+            ModuleContract contract = loadContract(args);
 
             RequirementDefinition req = new RequirementDefinition();
             req.setTitle(requireStringArg(args, "title"));
@@ -56,7 +57,7 @@ public class WriteToolHandlers {
             }
 
             mutator.addRequirement(contract, req);
-            saveContract(contract);
+            saveContract(contract, args);
 
             return textResult("Added requirement " + req.getId() + " (" + req.getTitle() + ")");
         } catch (PrathyaException e) {
@@ -68,7 +69,7 @@ public class WriteToolHandlers {
 
     public McpSchema.CallToolResult updateRequirement(Map<String, Object> args) {
         try {
-            ModuleContract contract = loadContract();
+            ModuleContract contract = loadContract(args);
             String id = requireStringArg(args, "id");
 
             RequirementUpdate update = new RequirementUpdate();
@@ -83,7 +84,7 @@ public class WriteToolHandlers {
             }
 
             mutator.updateRequirement(contract, id, update);
-            saveContract(contract);
+            saveContract(contract, args);
 
             return textResult("Updated requirement " + id);
         } catch (PrathyaException e) {
@@ -95,13 +96,13 @@ public class WriteToolHandlers {
 
     public McpSchema.CallToolResult addCornerCase(Map<String, Object> args) {
         try {
-            ModuleContract contract = loadContract();
+            ModuleContract contract = loadContract(args);
             String reqId = requireStringArg(args, "req_id");
             String description = requireStringArg(args, "description");
             String ccId = stringArg(args, "id");
 
             mutator.addCornerCase(contract, reqId, ccId, description);
-            saveContract(contract);
+            saveContract(contract, args);
 
             // Find the newly added CC to report its ID
             RequirementDefinition req = contract.getRequirements().stream()
@@ -117,13 +118,13 @@ public class WriteToolHandlers {
 
     public McpSchema.CallToolResult updateCornerCase(Map<String, Object> args) {
         try {
-            ModuleContract contract = loadContract();
+            ModuleContract contract = loadContract(args);
             String reqId = requireStringArg(args, "req_id");
             String ccId = requireStringArg(args, "cc_id");
             String description = requireStringArg(args, "description");
 
             mutator.updateCornerCase(contract, reqId, ccId, description);
-            saveContract(contract);
+            saveContract(contract, args);
 
             return textResult("Updated corner case " + ccId);
         } catch (PrathyaException e) {
@@ -135,12 +136,12 @@ public class WriteToolHandlers {
 
     public McpSchema.CallToolResult deprecateRequirement(Map<String, Object> args) {
         try {
-            ModuleContract contract = loadContract();
+            ModuleContract contract = loadContract(args);
             String id = requireStringArg(args, "id");
             String reason = stringArg(args, "reason");
 
             mutator.deprecateRequirement(contract, id, reason);
-            saveContract(contract);
+            saveContract(contract, args);
 
             return textResult("Deprecated requirement " + id);
         } catch (PrathyaException e) {
@@ -152,7 +153,7 @@ public class WriteToolHandlers {
 
     public McpSchema.CallToolResult supersedeRequirement(Map<String, Object> args) {
         try {
-            ModuleContract contract = loadContract();
+            ModuleContract contract = loadContract(args);
             String oldId = requireStringArg(args, "old_id");
             String title = requireStringArg(args, "title");
 
@@ -168,7 +169,7 @@ public class WriteToolHandlers {
             }
 
             mutator.supersedeRequirement(contract, oldId, newReq);
-            saveContract(contract);
+            saveContract(contract, args);
 
             return textResult("Superseded " + oldId + " with " + newReq.getId() + " (" + title + ")");
         } catch (PrathyaException e) {
@@ -178,12 +179,20 @@ public class WriteToolHandlers {
 
     // ── helpers ──
 
-    private ModuleContract loadContract() throws PrathyaException {
-        return parser.parse(config.getContractFile());
+    private ModuleContract loadContract(Map<String, Object> args) throws PrathyaException {
+        return parser.parse(resolveContractFile(args));
     }
 
-    private void saveContract(ModuleContract contract) throws PrathyaException {
-        writer.write(contract, config.getContractFile());
+    private void saveContract(ModuleContract contract, Map<String, Object> args) throws PrathyaException {
+        writer.write(contract, resolveContractFile(args));
+    }
+
+    private Path resolveContractFile(Map<String, Object> args) {
+        String override = stringArg(args, "contract_file");
+        if (override != null) {
+            return Path.of(override);
+        }
+        return config.getContractFile();
     }
 
     private static String stringArg(Map<String, Object> args, String key) {
