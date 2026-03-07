@@ -21,7 +21,25 @@ public class JsonReportReader {
         List<RequirementCoverage> requirements = readRequirements(root.get("requirements"));
         List<Violation> violations = readViolations(root.get("violations"));
 
-        return new CoverageMatrix(module, summary, requirements, violations);
+        CodeCoverageSummary codeCoverage = null;
+        if (root.has("codeCoverage")) {
+            codeCoverage = readCodeCoverage(root.get("codeCoverage"));
+        }
+
+        return new CoverageMatrix(module, summary, requirements, violations, null, codeCoverage);
+    }
+
+    private CodeCoverageSummary readCodeCoverage(JsonNode node) {
+        return new CodeCoverageSummary(
+                node.get("lineCovered").asInt(),
+                node.get("lineMissed").asInt(),
+                node.get("branchCovered").asInt(),
+                node.get("branchMissed").asInt(),
+                node.get("methodCovered").asInt(),
+                node.get("methodMissed").asInt(),
+                node.get("classCovered").asInt(),
+                node.get("classMissed").asInt()
+        );
     }
 
     private ModuleInfo readModule(JsonNode root) {
@@ -63,7 +81,13 @@ public class JsonReportReader {
                 String ccId = ccNode.get("id").asText();
                 boolean ccCovered = ccNode.get("covered").asBoolean();
                 Boolean ccPassing = ccNode.get("passing").isNull() ? null : ccNode.get("passing").asBoolean();
-                cornerCases.add(new CornerCaseCoverage(ccId, ccCovered, ccPassing));
+                List<String> ccTests = new ArrayList<>();
+                if (ccNode.has("tests") && ccNode.get("tests").isArray()) {
+                    for (JsonNode ct : ccNode.get("tests")) {
+                        ccTests.add(ct.asText());
+                    }
+                }
+                cornerCases.add(new CornerCaseCoverage(ccId, ccCovered, ccPassing, ccTests));
             }
 
             requirements.add(new RequirementCoverage(id, status, covered, tests, cornerCases, passing));

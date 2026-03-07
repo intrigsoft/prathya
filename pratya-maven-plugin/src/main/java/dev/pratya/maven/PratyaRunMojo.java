@@ -224,6 +224,8 @@ public class PratyaRunMojo extends AbstractPratyaMojo {
         request.setPomFile(new File(projectBasedir, "pom.xml"));
         request.setGoals(Collections.singletonList(goal));
         request.addArg(filterArg);
+        request.addArg("-Dsurefire.testFailureIgnore=true");
+        request.addArg("-Dfailsafe.testFailureIgnore=true");
         request.setBatchMode(true);
 
         Invoker invoker = new DefaultInvoker();

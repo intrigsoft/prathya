@@ -11,15 +11,11 @@ import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
-import java.util.regex.Pattern;
 
 /**
  * Parses {@code CONTRACT.yaml} using SnakeYAML and maps to the domain model.
  */
 public class YamlRequirementParser implements RequirementParser {
-
-    private static final Pattern REQ_ID_PATTERN = Pattern.compile("^[A-Z]+-\\d+$");
-    private static final Pattern CC_ID_PATTERN = Pattern.compile("^[A-Z]+-\\d+-CC-\\d+$");
 
     @Override
     public ModuleContract parse(Path requirementYaml) throws PratyaException {
@@ -148,14 +144,14 @@ public class YamlRequirementParser implements RequirementParser {
     }
 
     private void validateRequirementId(String id, String moduleId) throws PratyaException {
-        if (!REQ_ID_PATTERN.matcher(id).matches()) {
+        if (!ContractConstants.REQ_ID_PATTERN.matcher(id).matches()) {
             throw new PratyaException("Invalid requirement ID format: '" + id
                     + "'. Expected {MODULE}-{SEQ} (e.g. " + moduleId + "-001)");
         }
     }
 
     private void validateCornerCaseId(String id, String moduleId) throws PratyaException {
-        if (!CC_ID_PATTERN.matcher(id).matches()) {
+        if (!ContractConstants.CC_ID_PATTERN.matcher(id).matches()) {
             throw new PratyaException("Invalid corner case ID format: '" + id
                     + "'. Expected {MODULE}-{SEQ}-CC-{N} (e.g. " + moduleId + "-001-CC-001)");
         }

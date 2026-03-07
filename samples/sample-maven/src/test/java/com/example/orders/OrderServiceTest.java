@@ -97,4 +97,16 @@ class OrderServiceTest {
 
         assertEquals(29.00, order.getTotal(), 0.01);
     }
+
+    // --- Undocumented: test references a requirement not in CONTRACT.yaml ---
+
+    @Test
+    @Requirement("ORD-099")
+    void orderToString_returnsReadableFormat() {
+        Order order = service.createOrder(List.of(
+                new OrderItem("Widget", 1, 9.99)
+        ));
+
+        assertNotNull(order.toString());
+    }
 }

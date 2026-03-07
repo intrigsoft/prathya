@@ -41,7 +41,7 @@ public class DefaultCoverageComputer implements CoverageComputer {
             for (CornerCase cc : req.getCornerCases()) {
                 List<String> ccTests = idToTests.getOrDefault(cc.getId(), Collections.emptyList());
                 boolean ccCovered = !ccTests.isEmpty();
-                ccCoverages.add(new CornerCaseCoverage(cc.getId(), ccCovered, null));
+                ccCoverages.add(new CornerCaseCoverage(cc.getId(), ccCovered, null, ccTests));
 
                 if (isActive) {
                     totalCornerCases++;
@@ -68,7 +68,7 @@ public class DefaultCoverageComputer implements CoverageComputer {
                 totalCornerCases, coveredCornerCases,
                 reqCovPct, ccCovPct);
 
-        return new CoverageMatrix(contract.getModule(), summary, reqCoverages, Collections.emptyList());
+        return new CoverageMatrix(contract.getModule(), summary, reqCoverages, Collections.emptyList(), contract);
     }
 
     @Override
@@ -111,7 +111,7 @@ public class DefaultCoverageComputer implements CoverageComputer {
                 List<String> ccTests = idToTests.getOrDefault(cc.getId(), Collections.emptyList());
                 boolean ccCovered = !ccTests.isEmpty();
                 Boolean ccPassing = computePassing(ccTests, resultMap);
-                ccCoverages.add(new CornerCaseCoverage(cc.getId(), ccCovered, ccPassing));
+                ccCoverages.add(new CornerCaseCoverage(cc.getId(), ccCovered, ccPassing, ccTests));
 
                 if (isActive) {
                     totalCornerCases++;
@@ -138,7 +138,7 @@ public class DefaultCoverageComputer implements CoverageComputer {
                 totalCornerCases, coveredCornerCases,
                 reqCovPct, ccCovPct);
 
-        return new CoverageMatrix(contract.getModule(), summary, reqCoverages, Collections.emptyList());
+        return new CoverageMatrix(contract.getModule(), summary, reqCoverages, Collections.emptyList(), contract);
     }
 
     private Boolean computePassing(List<String> testLabels, Map<String, TestMethodResult> resultMap) {

@@ -7,12 +7,14 @@ import dev.pratya.core.report.JsonReportWriter;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.ResolutionScope;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-@Mojo(name = "report", defaultPhase = LifecyclePhase.VERIFY, threadSafe = true)
+@Mojo(name = "report", defaultPhase = LifecyclePhase.VERIFY, threadSafe = true,
+      requiresDependencyResolution = ResolutionScope.TEST)
 public class PratyaReportMojo extends AbstractPratyaMojo {
 
     @Override

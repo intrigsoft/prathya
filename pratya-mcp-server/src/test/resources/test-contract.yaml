@@ -1,0 +1,29 @@
+module:
+  id: TST
+  name: Test Service
+  description: Test service for MCP server tests
+  owner: test-team
+  version: 1.0.0
+
+requirements:
+  - id: TST-001
+    version: 1.0.0
+    status: approved
+    title: First requirement
+    description: A test requirement
+    acceptance_criteria:
+      - Criterion one
+      - Criterion two
+    corner_cases:
+      - id: TST-001-CC-001
+        description: Edge case one
+    changelog:
+      - version: 1.0.0
+        date: 2026-03-01
+        note: Initial
+
+  - id: TST-002
+    version: 1.0.0
+    status: draft
+    title: Second requirement
+    description: Another test requirement

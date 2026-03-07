@@ -25,7 +25,7 @@ class SurefireFilterBuilderTest {
                 new TestMethod("com.example.BarTest", "test2", List.of("REQ-002"))
         );
 
-        assertEquals("com.example.FooTest#test1+com.example.BarTest#test2",
+        assertEquals("com.example.FooTest#test1,com.example.BarTest#test2",
                 SurefireFilterBuilder.build(tests));
     }
 

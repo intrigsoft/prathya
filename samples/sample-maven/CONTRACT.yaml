@@ -66,3 +66,21 @@ requirements:
       - version: 1.0.0
         date: 2026-03-01
         note: Initial definition
+
+  - id: ORD-004
+    version: 1.0.0
+    status: approved
+    title: Retrieve order by ID
+    description: >
+      The system must allow retrieval of an existing order by its unique ID.
+      Returns null or throws if the order does not exist.
+    acceptance_criteria:
+      - Returns the order object when found
+      - Throws NoSuchElementException when ID does not exist
+    corner_cases:
+      - id: ORD-004-CC-001
+        description: Null order ID — must throw IllegalArgumentException
+    changelog:
+      - version: 1.0.0
+        date: 2026-03-07
+        note: Initial definition — not yet implemented

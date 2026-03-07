@@ -8,13 +8,17 @@ import dev.pratya.core.coverage.DefaultCoverageComputer;
 import dev.pratya.core.model.*;
 import dev.pratya.core.parser.RequirementParser;
 import dev.pratya.core.parser.YamlRequirementParser;
+import dev.pratya.core.report.JacocoReportParser;
 import dev.pratya.core.scanner.AnnotationScanner;
 import dev.pratya.core.scanner.ReflectionAnnotationScanner;
 
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.plugins.annotations.ResolutionScope;
+import org.apache.maven.project.MavenProject;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -48,6 +52,13 @@ public abstract class AbstractPratyaMojo extends AbstractMojo {
     @Parameter(property = "pratya.minimumCornerCaseCoverage", defaultValue = "0")
     protected double minimumCornerCaseCoverage;
 
+    @Parameter(property = "pratya.jacocoReportFile",
+               defaultValue = "${project.build.directory}/site/jacoco/jacoco.xml")
+    protected String jacocoReportFile;
+
+    @Parameter(defaultValue = "${project}", readonly = true)
+    protected MavenProject project;
+
     protected PipelineResult runPipeline() throws PratyaException {
         // 1. Parse
         RequirementParser parser = new YamlRequirementParser();
@@ -64,15 +75,46 @@ public abstract class AbstractPratyaMojo extends AbstractMojo {
             contract = new ModuleContract(contract.getModule(), filtered);
         }
 
-        // 3. Scan
+        // 3. Scan — include full test classpath so nested/inner classes can be loaded
         AnnotationScanner scanner = new ReflectionAnnotationScanner();
         Path testDir = Path.of(testClassesDirectory);
-        Path classesDir = Path.of(classesDirectory);
-        List<TraceEntry> traces = scanner.scan(List.of(testDir), List.of(classesDir));
+        List<Path> additionalClasspath = new ArrayList<>();
+        additionalClasspath.add(Path.of(classesDirectory));
+        if (project != null) {
+            try {
+                for (String element : project.getTestClasspathElements()) {
+                    Path p = Path.of(element);
+                    if (!p.equals(testDir) && Files.exists(p)) {
+                        additionalClasspath.add(p);
+                    }
+                }
+            } catch (Exception e) {
+                getLog().debug("Could not resolve test classpath: " + e.getMessage());
+            }
+        }
+        List<TraceEntry> traces = scanner.scan(List.of(testDir), additionalClasspath);
 
         // 4. Compute coverage
         CoverageComputer coverageComputer = new DefaultCoverageComputer();
         CoverageMatrix matrix = coverageComputer.compute(contract, traces);
+
+        // 4b. Read JaCoCo code coverage if available
+        CodeCoverageSummary codeCoverage = null;
+        Path jacocoPath = Path.of(jacocoReportFile);
+        if (Files.exists(jacocoPath)) {
+            try {
+                codeCoverage = new JacocoReportParser().parse(jacocoPath);
+                getLog().info("  JaCoCo report found: " + jacocoPath);
+            } catch (IOException e) {
+                getLog().warn("  Failed to read JaCoCo report: " + e.getMessage());
+            }
+        }
+        if (codeCoverage != null) {
+            matrix = new CoverageMatrix(
+                    matrix.getModule(), matrix.getSummary(),
+                    matrix.getRequirements(), matrix.getViolations(),
+                    matrix.getContract(), codeCoverage);
+        }
 
         // 5. Audit
         AuditEngine auditEngine = new DefaultAuditEngine();
@@ -126,17 +168,28 @@ public abstract class AbstractPratyaMojo extends AbstractMojo {
         long warnCount = violations.stream()
                 .filter(v -> v.getType().getSeverity() == Severity.WARN).count();
 
+        int coveredItems = matrix.getSummary().getCoveredRequirements()
+                + matrix.getSummary().getCoveredCornerCases();
+        int totalItems = matrix.getSummary().getActiveRequirements()
+                + matrix.getSummary().getTotalCornerCases();
+        double contractCoverage = totalItems == 0 ? 0.0 : (double) coveredItems / totalItems * 100;
+
         getLog().info("Pratya Report: " + matrix.getModule().getId());
-        getLog().info(String.format("  Requirements: %d/%d covered (%.1f%%)",
+        getLog().info(String.format("  Contract coverage: %d/%d items (%.1f%%)",
+                coveredItems, totalItems, contractCoverage));
+        getLog().info(String.format("    Requirements: %d/%d  |  Corner cases: %d/%d",
                 matrix.getSummary().getCoveredRequirements(),
                 matrix.getSummary().getActiveRequirements(),
-                matrix.getSummary().getRequirementCoverage()));
-        getLog().info(String.format("  Corner cases: %d/%d covered (%.1f%%)",
                 matrix.getSummary().getCoveredCornerCases(),
-                matrix.getSummary().getTotalCornerCases(),
-                matrix.getSummary().getCornerCaseCoverage()));
+                matrix.getSummary().getTotalCornerCases()));
         getLog().info(String.format("  Violations: %d (%d error, %d warn)",
                 violations.size(), errorCount, warnCount));
+
+        if (matrix.getCodeCoverage() != null) {
+            CodeCoverageSummary cc = matrix.getCodeCoverage();
+            getLog().info(String.format("  Code coverage: %.1f%% lines, %.1f%% branches",
+                    cc.getLineRate(), cc.getBranchRate()));
+        }
     }
 
     public record PipelineResult(CoverageMatrix matrix, List<Violation> violations) {

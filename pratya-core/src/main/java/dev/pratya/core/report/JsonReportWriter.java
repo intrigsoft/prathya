@@ -26,6 +26,10 @@ public class JsonReportWriter implements ReportWriter {
         writeRequirementsArray(root.putArray("requirements"), matrix.getRequirements());
         writeViolationsArray(root.putArray("violations"), violations);
 
+        if (matrix.getCodeCoverage() != null) {
+            writeCodeCoverageNode(root.putObject("codeCoverage"), matrix.getCodeCoverage());
+        }
+
         Files.createDirectories(outputFile.getParent());
         mapper.writerWithDefaultPrettyPrinter().writeValue(outputFile.toFile(), root);
     }
@@ -94,6 +98,10 @@ public class JsonReportWriter implements ReportWriter {
                 } else {
                     ccNode.put("passing", cc.getPassing());
                 }
+                ArrayNode ccTests = ccNode.putArray("tests");
+                for (String test : cc.getTests()) {
+                    ccTests.add(test);
+                }
             }
         }
     }
@@ -111,6 +119,19 @@ public class JsonReportWriter implements ReportWriter {
             }
             vNode.put("message", v.getMessage());
         }
+    }
+
+    private void writeCodeCoverageNode(ObjectNode node, CodeCoverageSummary cc) {
+        node.put("lineCovered", cc.getLineCovered());
+        node.put("lineMissed", cc.getLineMissed());
+        node.put("lineRate", cc.getLineRate());
+        node.put("branchCovered", cc.getBranchCovered());
+        node.put("branchMissed", cc.getBranchMissed());
+        node.put("branchRate", cc.getBranchRate());
+        node.put("methodCovered", cc.getMethodCovered());
+        node.put("methodMissed", cc.getMethodMissed());
+        node.put("classCovered", cc.getClassCovered());
+        node.put("classMissed", cc.getClassMissed());
     }
 
     @Override

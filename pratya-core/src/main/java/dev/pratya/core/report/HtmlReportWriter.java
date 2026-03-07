@@ -11,10 +11,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 public class HtmlReportWriter implements ReportWriter {
 
@@ -64,16 +63,63 @@ public class HtmlReportWriter implements ReportWriter {
         model.put("moduleName", matrix.getModule().getName() != null
                 ? matrix.getModule().getName() : matrix.getModule().getId());
         model.put("moduleId", matrix.getModule().getId());
-        model.put("generatedAt", Instant.now().toString());
+        model.put("generatedAt", DateTimeFormatter.ofPattern("MMM d, yyyy 'at' h:mm a")
+                .withZone(ZoneId.systemDefault()).format(Instant.now()));
 
-        // Summary
-        model.put("totalRequirements", matrix.getSummary().getTotalRequirements());
-        model.put("activeRequirements", matrix.getSummary().getActiveRequirements());
-        model.put("coveredRequirements", matrix.getSummary().getCoveredRequirements());
-        model.put("requirementCoverage", formatPercent(matrix.getSummary().getRequirementCoverage()));
-        model.put("totalCornerCases", matrix.getSummary().getTotalCornerCases());
-        model.put("coveredCornerCases", matrix.getSummary().getCoveredCornerCases());
-        model.put("cornerCaseCoverage", formatPercent(matrix.getSummary().getCornerCaseCoverage()));
+        // Summary — merged contract coverage (requirements + corner cases as equal items)
+        CoverageSummary s = matrix.getSummary();
+        int coveredItems = s.getCoveredRequirements() + s.getCoveredCornerCases();
+        int totalItems = s.getActiveRequirements() + s.getTotalCornerCases();
+        double contractCoverage = totalItems == 0 ? 0.0 : (double) coveredItems / totalItems * 100;
+        model.put("contractCoverage", formatPercent(contractCoverage));
+        model.put("coveredItems", coveredItems);
+        model.put("totalItems", totalItems);
+        model.put("coveredRequirements", s.getCoveredRequirements());
+        model.put("activeRequirements", s.getActiveRequirements());
+        model.put("coveredCornerCases", s.getCoveredCornerCases());
+        model.put("totalCornerCases", s.getTotalCornerCases());
+
+        // Code coverage (JaCoCo)
+        boolean hasCodeCoverage = matrix.getCodeCoverage() != null;
+        model.put("hasCodeCoverage", hasCodeCoverage);
+        if (hasCodeCoverage) {
+            CodeCoverageSummary cc = matrix.getCodeCoverage();
+            model.put("lineCoverage", formatPercent(cc.getLineRate()));
+            model.put("branchCoverage", formatPercent(cc.getBranchRate()));
+            model.put("lineCovered", cc.getLineCovered());
+            model.put("lineMissed", cc.getLineMissed());
+            model.put("lineCoveredTotal", cc.getLineCovered() + cc.getLineMissed());
+            model.put("branchCovered", cc.getBranchCovered());
+            model.put("branchMissed", cc.getBranchMissed());
+            model.put("branchCoveredTotal", cc.getBranchCovered() + cc.getBranchMissed());
+        }
+
+        // Build lookup from contract definitions (if available)
+        Map<String, RequirementDefinition> defById = new HashMap<>();
+        Map<String, CornerCase> ccDefById = new HashMap<>();
+        if (matrix.getContract() != null) {
+            for (RequirementDefinition def : matrix.getContract().getRequirements()) {
+                defById.put(def.getId(), def);
+                for (CornerCase cc : def.getCornerCases()) {
+                    ccDefById.put(cc.getId(), cc);
+                }
+            }
+        }
+
+        // Group violations by requirement ID
+        Set<String> knownReqIds = new HashSet<>();
+        for (RequirementCoverage r : matrix.getRequirements()) {
+            knownReqIds.add(r.getId());
+        }
+        Map<String, List<Violation>> violationsByReq = new HashMap<>();
+        List<Violation> globalViolations = new ArrayList<>();
+        for (Violation v : violations) {
+            if (v.getRequirementId() != null && knownReqIds.contains(v.getRequirementId())) {
+                violationsByReq.computeIfAbsent(v.getRequirementId(), k -> new ArrayList<>()).add(v);
+            } else {
+                globalViolations.add(v);
+            }
+        }
 
         // Requirements
         List<Map<String, Object>> reqs = new ArrayList<>();
@@ -81,15 +127,32 @@ public class HtmlReportWriter implements ReportWriter {
             Map<String, Object> reqMap = new HashMap<>();
             reqMap.put("id", req.getId());
             reqMap.put("status", req.getStatus().name().toLowerCase());
-            reqMap.put("statusClass", statusClass(req.getStatus(), req.isCovered(), req.getPassing()));
-            reqMap.put("covered", req.isCovered());
-            reqMap.put("uncovered", !req.isCovered());
-            reqMap.put("passing", req.getPassing() != null && req.getPassing());
-            reqMap.put("failing", req.getPassing() != null && !req.getPassing());
+            reqMap.put("coverageLabel", coverageLabel(req.isCovered(), req.getPassing()));
+            reqMap.put("coverageClass", coverageClass(req.isCovered(), req.getPassing()));
             reqMap.put("testCount", req.getTests().size());
-            reqMap.put("tests", req.getTests());
-            reqMap.put("hasCornerCases", !req.getCornerCases().isEmpty());
+            reqMap.put("hasTests", !req.getTests().isEmpty());
 
+            // Requirement definition metadata
+            RequirementDefinition def = defById.get(req.getId());
+            if (def != null) {
+                reqMap.put("title", def.getTitle());
+                reqMap.put("hasTitle", def.getTitle() != null && !def.getTitle().isEmpty());
+                reqMap.put("description", def.getDescription());
+                reqMap.put("hasDescription", def.getDescription() != null && !def.getDescription().isEmpty());
+                List<String> ac = def.getAcceptanceCriteria();
+                reqMap.put("acceptanceCriteria", ac);
+                reqMap.put("hasAcceptanceCriteria", ac != null && !ac.isEmpty());
+            }
+
+            // Test details
+            List<Map<String, Object>> testDetails = new ArrayList<>();
+            for (String test : req.getTests()) {
+                testDetails.add(buildTestDetail(test));
+            }
+            reqMap.put("testDetails", testDetails);
+
+            // Corner cases
+            reqMap.put("hasCornerCases", !req.getCornerCases().isEmpty());
             List<Map<String, Object>> cornerCases = new ArrayList<>();
             for (CornerCaseCoverage cc : req.getCornerCases()) {
                 Map<String, Object> ccMap = new HashMap<>();
@@ -97,25 +160,52 @@ public class HtmlReportWriter implements ReportWriter {
                 ccMap.put("covered", cc.isCovered());
                 ccMap.put("uncovered", !cc.isCovered());
                 ccMap.put("passing", cc.getPassing());
+
+                CornerCase ccDef = ccDefById.get(cc.getId());
+                if (ccDef != null) {
+                    ccMap.put("description", ccDef.getDescription());
+                    ccMap.put("hasDescription", ccDef.getDescription() != null && !ccDef.getDescription().isEmpty());
+                }
+
+                // CC test details
+                List<Map<String, Object>> ccTestDetails = new ArrayList<>();
+                for (String test : cc.getTests()) {
+                    ccTestDetails.add(buildTestDetail(test));
+                }
+                ccMap.put("testDetails", ccTestDetails);
+                ccMap.put("hasTests", !cc.getTests().isEmpty());
+                ccMap.put("testCount", cc.getTests().size());
+
                 cornerCases.add(ccMap);
             }
             reqMap.put("cornerCases", cornerCases);
+
+            // Violations for this requirement
+            List<Violation> reqViolations = violationsByReq.getOrDefault(req.getId(), Collections.emptyList());
+            reqMap.put("hasViolations", !reqViolations.isEmpty());
+            List<Map<String, Object>> reqViolationList = new ArrayList<>();
+            for (Violation v : reqViolations) {
+                Map<String, Object> vMap = new HashMap<>();
+                vMap.put("severity", v.getType().getSeverity().name().toLowerCase());
+                vMap.put("isError", v.getType().getSeverity() == Severity.ERROR);
+                vMap.put("message", v.getMessage());
+                reqViolationList.add(vMap);
+            }
+            reqMap.put("violations", reqViolationList);
 
             reqs.add(reqMap);
         }
         model.put("requirements", reqs);
 
-        // Violations
-        model.put("hasViolations", !violations.isEmpty());
+        // Global violations (not tied to a specific requirement)
+        model.put("hasViolations", !globalViolations.isEmpty());
         List<Map<String, Object>> violationList = new ArrayList<>();
-        for (Violation v : violations) {
+        for (Violation v : globalViolations) {
             Map<String, Object> vMap = new HashMap<>();
             vMap.put("type", v.getType().name());
             vMap.put("severity", v.getType().getSeverity().name().toLowerCase());
             vMap.put("isError", v.getType().getSeverity() == Severity.ERROR);
             vMap.put("isWarn", v.getType().getSeverity() == Severity.WARN);
-            vMap.put("requirementId", v.getRequirementId());
-            vMap.put("cornerCaseId", v.getCornerCaseId());
             vMap.put("message", v.getMessage());
             violationList.add(vMap);
         }
@@ -124,20 +214,33 @@ public class HtmlReportWriter implements ReportWriter {
         return model;
     }
 
+    private Map<String, Object> buildTestDetail(String test) {
+        Map<String, Object> td = new HashMap<>();
+        td.put("fullName", test);
+        int hash = test.indexOf('#');
+        td.put("shortName", hash >= 0 ? test.substring(hash + 1) : test);
+        td.put("className", hash >= 0 ? test.substring(0, hash) : test);
+        return td;
+    }
+
     private Map<String, Object> buildAggregateViewModel(AggregateReportData data) {
         Map<String, Object> model = new HashMap<>();
 
-        model.put("generatedAt", Instant.now().toString());
+        model.put("generatedAt", DateTimeFormatter.ofPattern("MMM d, yyyy 'at' h:mm a")
+                .withZone(ZoneId.systemDefault()).format(Instant.now()));
 
-        // Aggregate summary
+        // Aggregate summary — merged contract coverage
         CoverageSummary s = data.getAggregateSummary();
-        model.put("totalRequirements", s.getTotalRequirements());
-        model.put("activeRequirements", s.getActiveRequirements());
+        int coveredItems = s.getCoveredRequirements() + s.getCoveredCornerCases();
+        int totalItems = s.getActiveRequirements() + s.getTotalCornerCases();
+        double contractCoverage = totalItems == 0 ? 0.0 : (double) coveredItems / totalItems * 100;
+        model.put("contractCoverage", formatPercent(contractCoverage));
+        model.put("coveredItems", coveredItems);
+        model.put("totalItems", totalItems);
         model.put("coveredRequirements", s.getCoveredRequirements());
-        model.put("requirementCoverage", formatPercent(s.getRequirementCoverage()));
-        model.put("totalCornerCases", s.getTotalCornerCases());
+        model.put("activeRequirements", s.getActiveRequirements());
         model.put("coveredCornerCases", s.getCoveredCornerCases());
-        model.put("cornerCaseCoverage", formatPercent(s.getCornerCaseCoverage()));
+        model.put("totalCornerCases", s.getTotalCornerCases());
         model.put("moduleCount", data.getModules().size());
 
         // Per-module breakdown
@@ -147,12 +250,13 @@ public class HtmlReportWriter implements ReportWriter {
             moduleMap.put("moduleId", matrix.getModule().getId());
             moduleMap.put("moduleName", matrix.getModule().getName() != null
                     ? matrix.getModule().getName() : matrix.getModule().getId());
-            moduleMap.put("requirementCoverage", formatPercent(matrix.getSummary().getRequirementCoverage()));
-            moduleMap.put("coveredRequirements", matrix.getSummary().getCoveredRequirements());
-            moduleMap.put("activeRequirements", matrix.getSummary().getActiveRequirements());
-            moduleMap.put("cornerCaseCoverage", formatPercent(matrix.getSummary().getCornerCaseCoverage()));
-            moduleMap.put("coveredCornerCases", matrix.getSummary().getCoveredCornerCases());
-            moduleMap.put("totalCornerCases", matrix.getSummary().getTotalCornerCases());
+            CoverageSummary ms = matrix.getSummary();
+            int mCovered = ms.getCoveredRequirements() + ms.getCoveredCornerCases();
+            int mTotal = ms.getActiveRequirements() + ms.getTotalCornerCases();
+            double mRate = mTotal == 0 ? 0.0 : (double) mCovered / mTotal * 100;
+            moduleMap.put("contractCoverage", formatPercent(mRate));
+            moduleMap.put("coveredItems", mCovered);
+            moduleMap.put("totalItems", mTotal);
             moduleMap.put("violationCount", matrix.getViolations().size());
 
             // Requirements for this module
@@ -216,7 +320,22 @@ public class HtmlReportWriter implements ReportWriter {
         return covered ? "covered" : "uncovered";
     }
 
+    private String coverageLabel(boolean covered, Boolean passing) {
+        if (passing != null) {
+            return passing ? "passing" : "failing";
+        }
+        return covered ? "covered" : "uncovered";
+    }
+
+    private String coverageClass(boolean covered, Boolean passing) {
+        if (passing != null) {
+            return passing ? "passing" : "failing";
+        }
+        return covered ? "covered" : "uncovered";
+    }
+
     private String formatPercent(double value) {
         return String.format("%.1f", value);
     }
+
 }
