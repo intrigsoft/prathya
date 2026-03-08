@@ -15,6 +15,9 @@ build/
 .settings/
 *.class
 
+# Derived docs
+site/docs/changelog.md
+
 # OS files
 .DS_Store
 Thumbs.db

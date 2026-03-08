@@ -1,0 +1,30 @@
+# Changelog
+
+## Unreleased
+
+- Add distribution management, CI workflow, and Apache 2.0 license; enhance POM with plugins and profiles for Maven release process. ([`be7dbb8fb9362ca`](https://github.com/intrigsoft/prathya/commit/be7dbb8fb9362ca))
+- Add Gradle plugin marker, update sample gradle project for Gradle wrapper support, input/output annotations in tasks. ([`53fa736b48ae527`](https://github.com/intrigsoft/prathya/commit/53fa736b48ae527))
+- Update theme color to deep-purple, replace SVG logos with image files, remove min coverage thresholds, and modify sitemap lastmod dates. ([`fa4bbaf71777a45`](https://github.com/intrigsoft/prathya/commit/fa4bbaf71777a45))
+- Add comprehensive setup instructions to MCP Server documentation, improve annotation scanning with BytecodeAnnotationScanner, update theme and logo in site configuration, and enhance HTML report with corner case coverage details. ([`fec40cac8091d52`](https://github.com/intrigsoft/prathya/commit/fec40cac8091d52))
+- Add support for &#x60;test_environment&#x60; in corner cases; enhance violation info and extend report generation to include environment details. Introduce warning in MCP server operations when test-classes directory is missing. ([`eadaf596e45d334`](https://github.com/intrigsoft/prathya/commit/eadaf596e45d334))
+- Remove minimum coverage thresholds and enhance contract code coverage tracking. Update documentation, Maven and Gradle plugins, and report generation to integrate and display contract code coverage metrics. ([`e834ceb62ea5073`](https://github.com/intrigsoft/prathya/commit/e834ceb62ea5073))
+- Add MkDocs site documentation: Set up mkdocs.yml for site configuration and add initial documentation files for audit rules, roadmap, Gradle plugin, Maven plugin, MCP server, contract format, and concepts. ([`97b2a12c3e38a56`](https://github.com/intrigsoft/prathya/commit/97b2a12c3e38a56))
+- Refine tool schema descriptions and extend PrathyaToolRegistry registration comments for clarity and traceability. Add ServerInstructions to PrathyaMcpServer configuration. ([`0cdc3d8fcf39459`](https://github.com/intrigsoft/prathya/commit/0cdc3d8fcf39459))
+- Add contract file override option in ReadToolHandlers and WriteToolHandlers ([`b402c0b641793d3`](https://github.com/intrigsoft/prathya/commit/b402c0b641793d3))
+- Remove RequirementParser and PratyaException; refactor to replace &#x27;pratya&#x27; with &#x27;prathya&#x27; across multiple packages and modules. ([`515b79913ffbe3a`](https://github.com/intrigsoft/prathya/commit/515b79913ffbe3a))
+- Rename all references of &#x60;pratya&#x60; to &#x60;prathya&#x60; across the project including artifact IDs, group IDs, module names, package imports, and documentation. ([`fb77235b6c0fa43`](https://github.com/intrigsoft/prathya/commit/fb77235b6c0fa43))
+- Add ReadToolHandlers class and test-contract.yaml for MCP server; enhance Pratya report styling and add pratya-mcp-server module. ([`0868bb88cbd3167`](https://github.com/intrigsoft/prathya/commit/0868bb88cbd3167))
+- Remove &#x60;pratya-examples&#x60; module and migrate sample projects to &#x60;samples&#x60; directory; add Maven and Gradle examples showcasing &#x60;pratya-maven-plugin&#x60; and &#x60;pratya-gradle-plugin&#x60; with expanded test coverage, requirements, and contract verification features. ([`78fb051e86e3d0b`](https://github.com/intrigsoft/prathya/commit/78fb051e86e3d0b))
+- Refactor Pratya Gradle Plugin: restructure tasks and extensions, change package groupId, and migrate build system from Gradle to Maven. Add new tasks for audit, report, verification, and aggregation, along with associated configuration extensions. ([`f71d7b1a39908f8`](https://github.com/intrigsoft/prathya/commit/f71d7b1a39908f8))
+- Add aggregate report generation: introduce &#x60;AggregateReportData&#x60;, HTML and JSON report writers, and associated unit tests for coverage and violations aggregation. ([`b260a248c716e84`](https://github.com/intrigsoft/prathya/commit/b260a248c716e84))
+- Rename &#x60;REQUIREMENT.yaml&#x60; references to &#x60;CONTRACT.yaml&#x60; throughout the project: update configuration properties, class comments, error messages, and documentation. ([`6c567eb4cacb3a2`](https://github.com/intrigsoft/prathya/commit/6c567eb4cacb3a2))
+- Rename &quot;pactum&quot; references to &quot;pratya&quot; across project: update package names, plugin IDs, class names, descriptions, and artifacts. ([`58e49f3c6fd8ef1`](https://github.com/intrigsoft/prathya/commit/58e49f3c6fd8ef1))
+- Add test classification and execution by scope; implement integration test patterns and result merging functionality. ([`a8fc3ac4ab690bd`](https://github.com/intrigsoft/prathya/commit/a8fc3ac4ab690bd))
+- Add Default Pactum Test Runner and related classes; implement Maven Invoker dependency; enhance coverage computation with test result integration. ([`78c6fda1d4e7d30`](https://github.com/intrigsoft/prathya/commit/78c6fda1d4e7d30))
+- Refactor Pactum plugin structure: adopt abstract base class for Mojos, add separate Mojos for audit and report tasks, enhance report generation with severity levels, and unify pipeline execution flow. ([`3e32874492f12f9`](https://github.com/intrigsoft/prathya/commit/3e32874492f12f9))
+- Refactor project architecture: replace legacy annotations and engine with a modular design. Implement new interfaces for annotation scanning, auditing, and report generation. Add support for JSON and HTML report outputs. ([`0a88e67fcf2413b`](https://github.com/intrigsoft/prathya/commit/0a88e67fcf2413b))
+- Merge pull request #1 from intrigsoft/copilot/create-maven-multimodule-project ([`6747ff03c48aa0d`](https://github.com/intrigsoft/prathya/commit/6747ff03c48aa0d))
+- Create Maven multimodule project with core, annotations, maven-plugin, gradle-plugin, and examples modules ([`38f3e71287cefac`](https://github.com/intrigsoft/prathya/commit/38f3e71287cefac))
+- Initial plan ([`1b99cf19f2d9600`](https://github.com/intrigsoft/prathya/commit/1b99cf19f2d9600))
+- Initial commit ([`11c6543dff1dd2d`](https://github.com/intrigsoft/prathya/commit/11c6543dff1dd2d))
+

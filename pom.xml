@@ -66,6 +66,7 @@
         <maven-javadoc-plugin.version>3.6.3</maven-javadoc-plugin.version>
         <maven-gpg-plugin.version>3.2.4</maven-gpg-plugin.version>
         <central-publishing-plugin.version>0.7.0</central-publishing-plugin.version>
+        <git-changelog-maven-plugin.version>2.2.0</git-changelog-maven-plugin.version>
     </properties>
 
     <distributionManagement>
@@ -183,6 +184,25 @@
             <id>release</id>
             <build>
                 <plugins>
+                    <plugin>
+                        <groupId>se.bjurr.gitchangelog</groupId>
+                        <artifactId>git-changelog-maven-plugin</artifactId>
+                        <version>${git-changelog-maven-plugin.version}</version>
+                        <inherited>false</inherited>
+                        <executions>
+                            <execution>
+                                <id>generate-changelog</id>
+                                <phase>generate-resources</phase>
+                                <goals>
+                                    <goal>git-changelog</goal>
+                                </goals>
+                                <configuration>
+                                    <templateFile>${project.basedir}/site/changelog-template.mustache</templateFile>
+                                    <file>${project.basedir}/CHANGELOG.md</file>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-source-plugin</artifactId>

@@ -44,6 +44,7 @@ nav:
   - Gradle Plugin: gradle-plugin.md
   - MCP Server: mcp-server.md
   - Audit Rules: audit-rules.md
+  - Changelog: changelog.md
   - Roadmap: roadmap.md
 
 markdown_extensions:
