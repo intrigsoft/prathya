@@ -11,14 +11,14 @@ theme:
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default
-      primary: indigo
+      primary: deep purple
       accent: amber
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
-      primary: indigo
+      primary: deep purple
       accent: amber
       toggle:
         icon: material/brightness-4
@@ -31,6 +31,8 @@ theme:
     - search.highlight
     - content.code.copy
     - content.tabs.link
+  logo: assets/logo.svg
+  favicon: assets/favicon.png
   icon:
     repo: fontawesome/brands/github
 

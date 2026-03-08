@@ -1,15 +1,60 @@
 # MCP Server
 
-The Prathya MCP server exposes the contract management surface via the [Model Context Protocol](https://modelcontextprotocol.io/), enabling AI agents to participate directly in the contract-driven development loop.
+The Prathya MCP server exposes the contract management surface via the [Model Context Protocol](https://modelcontextprotocol.io/), enabling AI coding agents to participate directly in the contract-driven development loop.
 
 An agent can read the contract before generating code, check coverage after generating tests, and iterate until the contract is satisfied.
 
-## Running the Server
+## Prerequisites
 
-The MCP server is distributed as an uber-jar (built with Maven Shade) using stdio transport:
+### 1. Install JBang
+
+[JBang](https://www.jbang.dev/) is used to run the MCP server without manual classpath setup.
+
+=== "Linux / macOS"
+
+    ```bash
+    curl -Ls https://sh.jbang.dev | bash -s - app setup
+    ```
+
+=== "Windows"
+
+    ```powershell
+    iex "& { $(iwr -useb https://ps.jbang.dev) } app setup"
+    ```
+
+=== "SDKMAN!"
+
+    ```bash
+    sdk install jbang
+    ```
+
+### 2. Install the MCP Server Artifact
+
+Fetch the Prathya MCP server uber-jar into your local Maven repository:
 
 ```bash
-java -jar prathya-mcp-server-1.0.0-SNAPSHOT.jar
+mvn dependency:get -Dartifact=dev.prathya:prathya-mcp-server:1.0.0-SNAPSHOT
+```
+
+## Configuration
+
+Add the Prathya MCP server to your AI coding tool's MCP configuration. The server uses **stdio** transport.
+
+### Generic MCP Configuration
+
+```json
+{
+  "mcpServers": {
+    "prathya": {
+      "command": "jbang",
+      "args": [
+        "--quiet",
+        "--main", "dev.prathya.mcp.PrathyaMcpServer",
+        "dev.prathya:prathya-mcp-server:1.0.0-SNAPSHOT"
+      ]
+    }
+  }
+}
 ```
 
 ### Configuration Options
@@ -19,12 +64,23 @@ java -jar prathya-mcp-server-1.0.0-SNAPSHOT.jar
 | `--contract-file` | `CONTRACT.yaml` | Path to the contract file |
 | `--test-classes` | `target/test-classes` | Path to compiled test classes |
 
-### Example
+To pass options, append them after the artifact coordinate:
 
-```bash
-java -jar prathya-mcp-server-1.0.0-SNAPSHOT.jar \
-    --contract-file ./my-module/CONTRACT.yaml \
-    --test-classes ./my-module/target/test-classes
+```json
+{
+  "mcpServers": {
+    "prathya": {
+      "command": "jbang",
+      "args": [
+        "--quiet",
+        "--main", "dev.prathya.mcp.PrathyaMcpServer",
+        "dev.prathya:prathya-mcp-server:1.0.0-SNAPSHOT",
+        "--contract-file", "/path/to/CONTRACT.yaml",
+        "--test-classes", "/path/to/target/test-classes"
+      ]
+    }
+  }
+}
 ```
 
 ## Tool Reference
@@ -54,29 +110,9 @@ The server exposes 13 tools organized into read and write operations.
 | `deprecate_requirement` | Sets a requirement's status to `deprecated` |
 | `supersede_requirement` | Marks a requirement as superseded and links to its replacement |
 
-## Integration with AI Agents
+## Agent Workflow
 
-### Claude Desktop
-
-Add to your `claude_desktop_config.json`:
-
-```json
-{
-  "mcpServers": {
-    "prathya": {
-      "command": "java",
-      "args": [
-        "-jar",
-        "/path/to/prathya-mcp-server-1.0.0-SNAPSHOT.jar",
-        "--contract-file",
-        "/path/to/your/project/CONTRACT.yaml"
-      ]
-    }
-  }
-}
-```
-
-### Typical Agent Workflow
+A typical workflow for an AI agent using the MCP server:
 
 1. **Read the contract** — `get_contract` or `list_requirements` to understand what the module must do
 2. **Check coverage** — `list_untested` to find gaps
@@ -87,6 +123,5 @@ Add to your `claude_desktop_config.json`:
 ## Technical Details
 
 - **Transport:** stdio (standard input/output)
-- **SDK:** MCP SDK `io.modelcontextprotocol.sdk:mcp:1.0.0`
 - **Packaging:** Maven Shade uber-jar
-- **Serialization:** Jackson 3 (`tools.jackson`)
+- **SDK:** MCP SDK `io.modelcontextprotocol.sdk:mcp:1.0.0`

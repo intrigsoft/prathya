@@ -58,6 +58,39 @@ public class PrathyaServerConfig {
     }
 
     /**
+     * Auto-detects test-classes and classes directories relative to a contract file path.
+     * Returns a two-element array: [testClassesDir, classesDir], either of which may be null.
+     */
+    public static Path[] detectDirectories(Path contractFilePath) {
+        Path contractParent = contractFilePath.toAbsolutePath().getParent();
+        if (contractParent == null) {
+            return new Path[]{null, null};
+        }
+
+        // Try Maven layout
+        Path mavenTestClasses = contractParent.resolve("target/test-classes");
+        Path mavenClasses = contractParent.resolve("target/classes");
+        if (Files.isDirectory(mavenTestClasses)) {
+            return new Path[]{
+                    mavenTestClasses,
+                    Files.isDirectory(mavenClasses) ? mavenClasses : null
+            };
+        }
+
+        // Try Gradle layout
+        Path gradleTestClasses = contractParent.resolve("build/classes/java/test");
+        Path gradleClasses = contractParent.resolve("build/classes/java/main");
+        if (Files.isDirectory(gradleTestClasses)) {
+            return new Path[]{
+                    gradleTestClasses,
+                    Files.isDirectory(gradleClasses) ? gradleClasses : null
+            };
+        }
+
+        return new Path[]{null, null};
+    }
+
+    /**
      * Auto-detects test-classes and classes directories from standard Maven/Gradle layouts
      * relative to the contract file's parent directory, if not explicitly configured.
      */
@@ -65,30 +98,10 @@ public class PrathyaServerConfig {
         if (testClassesDir != null) {
             return;
         }
-        Path contractParent = contractFile.toAbsolutePath().getParent();
-        if (contractParent == null) {
-            return;
-        }
-
-        // Try Maven layout
-        Path mavenTestClasses = contractParent.resolve("target/test-classes");
-        Path mavenClasses = contractParent.resolve("target/classes");
-        if (Files.isDirectory(mavenTestClasses)) {
-            testClassesDir = mavenTestClasses;
-            if (classesDir == null && Files.isDirectory(mavenClasses)) {
-                classesDir = mavenClasses;
-            }
-            return;
-        }
-
-        // Try Gradle layout
-        Path gradleTestClasses = contractParent.resolve("build/classes/java/test");
-        Path gradleClasses = contractParent.resolve("build/classes/java/main");
-        if (Files.isDirectory(gradleTestClasses)) {
-            testClassesDir = gradleTestClasses;
-            if (classesDir == null && Files.isDirectory(gradleClasses)) {
-                classesDir = gradleClasses;
-            }
+        Path[] detected = detectDirectories(contractFile);
+        testClassesDir = detected[0];
+        if (classesDir == null) {
+            classesDir = detected[1];
         }
     }
 }

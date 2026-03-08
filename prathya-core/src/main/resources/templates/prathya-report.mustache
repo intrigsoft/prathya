@@ -29,6 +29,7 @@
         .badge.severity-error { background: #f8d7da; color: #721c24; }
         .badge.severity-warn { background: #fff3cd; color: #856404; }
         .badge.severity-info { background: #d1ecf1; color: #0c5460; }
+        .badge.cc-count { background: #e8eaf6; color: #3949ab; font-size: 0.75rem; }
 
         /* Requirement cards */
         .req-card { background: #fff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 16px; overflow: hidden; }
@@ -152,6 +153,7 @@
                         <div class="req-badges">
                             <span class="badge inactive">{{status}}</span>
                             <span class="badge {{coverageClass}}">{{coverageLabel}}</span>
+                            {{#hasCornerCases}}<span class="badge cc-count">CC {{coveredCornerCaseCount}}/{{totalCornerCaseCount}}</span>{{/hasCornerCases}}
                         </div>
                     </div>
                 </summary>

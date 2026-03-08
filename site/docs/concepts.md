@@ -6,6 +6,9 @@ Contract-Driven Development (CDD) starts from a simple premise: **define what th
 
 Tests are written against the contract. Coverage is measured against the contract. The contract is the source of truth.
 
+!!! note "Disambiguation"
+    The term *Contract-Driven Development* is traditionally associated with defining API or service interaction contracts prior to implementation. In Prathya, the contract refers to **behavioral requirements** — not API schemas — and coverage is measured against those requirements.
+
 ## Key Components
 
 ### The Contract (`CONTRACT.yaml`)
@@ -103,11 +106,27 @@ When JaCoCo is present, Prathya computes **contract code coverage** — the perc
 
 The gap between the two numbers is meaningful. If total code coverage is 87% but contract code coverage is 60%, then 27% of your code coverage comes from tests that aren't linked to any requirement. Those tests exercise code, but don't prove intent.
 
-## The Coverage Quadrant
+## Interpreting the Metrics
 
-Prathya is designed to sit alongside JaCoCo. Used together, the two metrics expose a quadrant of insights:
+Prathya measures requirement coverage — whether each documented requirement has a test mapped to it. It does not verify correctness; it trusts that a test annotated with `@Requirement("AUTH-001")` actually verifies that requirement. This is an indirect measurement.
 
-| | Code Coverage High | Code Coverage Low |
-|---|---|---|
-| **Requirement Coverage High** | Well-tested and well-documented | Requirements are mapped but tests may be shallow |
-| **Requirement Coverage Low** | Code is exercised but features aren't documented — possible dead code | Undertested and underdocumented |
+Used alongside JaCoCo's code coverage, the relationship between the two metrics helps identify specific issues:
+
+!!! failure "Requirement coverage below 100%"
+    Some requirements have no tests mapped to them. These are unverified parts of the contract.
+
+!!! warning "Requirement coverage :material-arrow-up-bold: Code coverage :material-arrow-down-bold:"
+    Most requirements have mapped tests, but large portions of the code are not exercised. This may indicate:
+
+    - :material-close: **Tests are shallow** — annotated tests exist but rely heavily on mocking or do not exercise real code paths.
+    - :material-close: **Requirements are incomplete** — the contract does not capture all functionality in the module, leaving undocumented code untested.
+    - :material-close: **Dead code** — code exists that is not needed by any requirement and is never executed.
+
+!!! info "Requirement coverage :material-arrow-down-bold: Code coverage :material-arrow-up-bold:"
+    The codebase has substantial test coverage, but tests are not mapped to requirements. This may indicate:
+
+    - :material-progress-clock: **CDD adoption in progress** — tests exist and the team is incrementally annotating them with `@Requirement`. This is a transitional state.
+    - :material-close: **Tests verify implementation, not intent** — tests exercise code but are not driven by documented business requirements. The tests may pass, but they do not prove that the contract is satisfied.
+
+!!! success "Requirement coverage :material-arrow-up-bold: Code coverage :material-arrow-up-bold:"
+    Both metrics are high. Requirements are documented, tests are mapped, and code is well exercised. This is the target state.

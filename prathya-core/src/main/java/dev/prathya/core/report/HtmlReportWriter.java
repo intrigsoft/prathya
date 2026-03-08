@@ -168,6 +168,9 @@ public class HtmlReportWriter implements ReportWriter {
 
             // Corner cases
             reqMap.put("hasCornerCases", !req.getCornerCases().isEmpty());
+            reqMap.put("totalCornerCaseCount", req.getCornerCases().size());
+            reqMap.put("coveredCornerCaseCount", req.getCornerCases().stream()
+                    .filter(CornerCaseCoverage::isCovered).count());
             List<Map<String, Object>> cornerCases = new ArrayList<>();
             for (CornerCaseCoverage cc : req.getCornerCases()) {
                 Map<String, Object> ccMap = new HashMap<>();

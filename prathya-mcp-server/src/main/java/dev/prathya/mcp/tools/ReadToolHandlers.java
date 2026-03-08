@@ -9,6 +9,7 @@ import dev.prathya.core.model.*;
 import dev.prathya.core.parser.RequirementParser;
 import dev.prathya.core.parser.YamlRequirementParser;
 import dev.prathya.core.scanner.AnnotationScanner;
+import dev.prathya.core.scanner.BytecodeAnnotationScanner;
 import dev.prathya.core.scanner.ReflectionAnnotationScanner;
 import dev.prathya.mcp.PrathyaServerConfig;
 import io.modelcontextprotocol.spec.McpSchema;
@@ -26,7 +27,7 @@ public class ReadToolHandlers {
     private final RequirementParser parser = new YamlRequirementParser();
     private final CoverageComputer coverageComputer = new DefaultCoverageComputer();
     private final AuditEngine auditEngine = new DefaultAuditEngine();
-    private final AnnotationScanner scanner = new ReflectionAnnotationScanner();
+    private final AnnotationScanner scanner = new BytecodeAnnotationScanner();
 
     public ReadToolHandlers(PrathyaServerConfig config) {
         this.config = config;
@@ -144,9 +145,10 @@ public class ReadToolHandlers {
 
     public McpSchema.CallToolResult listUntested(Map<String, Object> args) {
         try {
-            String warning = scanWarning();
-            ModuleContract contract = loadContract(args);
-            List<TraceEntry> traces = scanTraces();
+            Path contractPath = resolveContractFile(args);
+            String warning = scanWarning(contractPath);
+            ModuleContract contract = parser.parse(contractPath);
+            List<TraceEntry> traces = scanTraces(contractPath);
             CoverageMatrix matrix = coverageComputer.compute(contract, traces);
 
             List<String> untested = new ArrayList<>();
@@ -174,9 +176,10 @@ public class ReadToolHandlers {
 
     public McpSchema.CallToolResult getCoverageMatrix(Map<String, Object> args) {
         try {
-            String warning = scanWarning();
-            ModuleContract contract = loadContract(args);
-            List<TraceEntry> traces = scanTraces();
+            Path contractPath = resolveContractFile(args);
+            String warning = scanWarning(contractPath);
+            ModuleContract contract = parser.parse(contractPath);
+            List<TraceEntry> traces = scanTraces(contractPath);
             CoverageMatrix matrix = coverageComputer.compute(contract, traces);
 
             StringBuilder sb = new StringBuilder(warning);
@@ -215,9 +218,10 @@ public class ReadToolHandlers {
 
     public McpSchema.CallToolResult runAudit(Map<String, Object> args) {
         try {
-            String warning = scanWarning();
-            ModuleContract contract = loadContract(args);
-            List<TraceEntry> traces = scanTraces();
+            Path contractPath = resolveContractFile(args);
+            String warning = scanWarning(contractPath);
+            ModuleContract contract = parser.parse(contractPath);
+            List<TraceEntry> traces = scanTraces(contractPath);
             List<Violation> violations = auditEngine.audit(contract, traces);
 
             if (violations.isEmpty()) {
@@ -293,18 +297,32 @@ public class ReadToolHandlers {
         return config.getContractFile();
     }
 
-    private List<TraceEntry> scanTraces() {
-        if (config.getTestClassesDir() == null) {
-            return List.of();
+    /**
+     * Resolves test-classes and classes dirs: uses config if explicitly set,
+     * otherwise auto-detects from the resolved contract file path.
+     */
+    private Path[] resolveTestDirs(Path contractPath) {
+        if (config.getTestClassesDir() != null) {
+            return new Path[]{config.getTestClassesDir(),
+                    config.getClassesDir()};
         }
-        return scanner.scan(
-                List.of(config.getTestClassesDir()),
-                config.getAnnotationScanClasspath()
-        );
+        return PrathyaServerConfig.detectDirectories(contractPath);
     }
 
-    private String scanWarning() {
-        if (config.getTestClassesDir() == null) {
+    private List<TraceEntry> scanTraces(Path contractPath) {
+        Path[] dirs = resolveTestDirs(contractPath);
+        Path testClassesDir = dirs[0];
+        Path classesDir = dirs[1];
+        if (testClassesDir == null) {
+            return List.of();
+        }
+        List<Path> classpath = classesDir != null ? List.of(classesDir) : List.of();
+        return scanner.scan(List.of(testClassesDir), classpath);
+    }
+
+    private String scanWarning(Path contractPath) {
+        Path[] dirs = resolveTestDirs(contractPath);
+        if (dirs[0] == null) {
             return "WARNING: No test-classes directory found. "
                     + "Annotation scanning is disabled — audit, coverage, and untested results will be empty. "
                     + "Use --test-classes to specify the directory, or build the project so that "
