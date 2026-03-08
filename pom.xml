@@ -17,6 +17,7 @@
         <module>prathya-core</module>
         <module>prathya-maven-plugin</module>
         <module>prathya-gradle-plugin</module>
+        <module>prathya-gradle-plugin-marker</module>
         <module>prathya-mcp-server</module>
     </modules>
 

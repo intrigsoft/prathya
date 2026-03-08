@@ -16,6 +16,13 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputDirectory;
+import org.gradle.api.tasks.InputFile;
+import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -26,18 +33,31 @@ import java.util.stream.Collectors;
 
 public abstract class AbstractPrathyaTask extends DefaultTask {
 
+    @InputFile
+    @PathSensitive(PathSensitivity.RELATIVE)
     public abstract RegularFileProperty getContractFile();
 
+    @InputDirectory
+    @PathSensitive(PathSensitivity.RELATIVE)
     public abstract DirectoryProperty getClassesDir();
 
+    @InputDirectory
+    @PathSensitive(PathSensitivity.RELATIVE)
     public abstract DirectoryProperty getTestClassesDir();
 
+    @OutputDirectory
     public abstract DirectoryProperty getOutputDir();
 
+    @Input
+    @Optional
     public abstract ListProperty<String> getExcludeStatuses();
 
+    @Input
+    @Optional
     public abstract Property<Double> getMinRequirementCoverage();
 
+    @Input
+    @Optional
     public abstract Property<Double> getMinCornerCaseCoverage();
 
     protected PipelineResult runPipeline() throws PrathyaException {
@@ -115,14 +135,14 @@ public abstract class AbstractPrathyaTask extends DefaultTask {
                 .filter(v -> v.getType().getSeverity() == Severity.WARN).count();
 
         getLogger().lifecycle("Prathya Report: {}", matrix.getModule().getId());
-        getLogger().lifecycle("  Requirements: {}/{} covered ({:.1f}%)",
+        getLogger().lifecycle("  Requirements: {}/{} covered ({}%)",
                 matrix.getSummary().getCoveredRequirements(),
                 matrix.getSummary().getActiveRequirements(),
-                matrix.getSummary().getRequirementCoverage());
-        getLogger().lifecycle("  Corner cases: {}/{} covered ({:.1f}%)",
+                String.format("%.1f", matrix.getSummary().getRequirementCoverage()));
+        getLogger().lifecycle("  Corner cases: {}/{} covered ({}%)",
                 matrix.getSummary().getCoveredCornerCases(),
                 matrix.getSummary().getTotalCornerCases(),
-                matrix.getSummary().getCornerCaseCoverage());
+                String.format("%.1f", matrix.getSummary().getCornerCaseCoverage()));
         getLogger().lifecycle("  Violations: {} ({} error, {} warn)",
                 violations.size(), errorCount, warnCount);
     }
