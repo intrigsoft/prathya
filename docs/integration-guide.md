@@ -29,7 +29,7 @@ Add the following to your project's `pom.xml`:
 <dependencies>
     <!-- Prathya test annotation (test scope only, zero transitive deps) -->
     <dependency>
-        <groupId>dev.prathya</groupId>
+        <groupId>com.intrigsoft.prathya</groupId>
         <artifactId>prathya-annotations</artifactId>
         <version>${prathya.version}</version>
         <scope>test</scope>
@@ -57,7 +57,7 @@ Add the following to your project's `pom.xml`:
 
         <!-- Prathya plugin -->
         <plugin>
-            <groupId>dev.prathya</groupId>
+            <groupId>com.intrigsoft.prathya</groupId>
             <artifactId>prathya-maven-plugin</artifactId>
             <version>${prathya.version}</version>
             <executions>
@@ -138,7 +138,7 @@ requirements:
 Import `@Requirement` and annotate each test method with the IDs it verifies:
 
 ```java
-import dev.prathya.annotations.Requirement;
+import com.intrigsoft.prathya.annotations.Requirement;
 
 class AuthServiceTest {
 
@@ -215,7 +215,7 @@ All parameters can be set in `<configuration>` or as `-D` system properties.
 
 ```xml
 <plugin>
-    <groupId>dev.prathya</groupId>
+    <groupId>com.intrigsoft.prathya</groupId>
     <artifactId>prathya-maven-plugin</artifactId>
     <version>${prathya.version}</version>
     <configuration>
@@ -278,7 +278,7 @@ For multi-module Maven projects, each module gets its own `CONTRACT.yaml` and `@
 ```xml
 <!-- Parent POM -->
 <plugin>
-    <groupId>dev.prathya</groupId>
+    <groupId>com.intrigsoft.prathya</groupId>
     <artifactId>prathya-maven-plugin</artifactId>
     <version>${prathya.version}</version>
     <executions>

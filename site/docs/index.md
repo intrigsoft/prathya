@@ -22,7 +22,7 @@ Prathya introduces **Contract-Driven Development (CDD)** as a natural companion 
 
 ```xml
 <dependency>
-    <groupId>dev.prathya</groupId>
+    <groupId>com.intrigsoft.prathya</groupId>
     <artifactId>prathya-annotations</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <scope>test</scope>
@@ -55,7 +55,7 @@ requirements:
 ### 3. Annotate your tests
 
 ```java
-import dev.prathya.annotations.Requirement;
+import com.intrigsoft.prathya.annotations.Requirement;
 
 class AuthServiceTest {
 

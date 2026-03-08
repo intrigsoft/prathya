@@ -5,16 +5,16 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>dev.prathya</groupId>
+        <groupId>com.intrigsoft.prathya</groupId>
         <artifactId>prathya</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>dev.prathya.gradle.plugin</artifactId>
+    <artifactId>com.intrigsoft.prathya.gradle.plugin</artifactId>
     <packaging>pom</packaging>
 
     <name>Prathya Gradle Plugin Marker</name>
-    <description>Gradle plugin marker artifact for dev.prathya plugin ID</description>
+    <description>Gradle plugin marker artifact for com.intrigsoft.prathya plugin ID</description>
 
     <properties>
         <maven.source.skip>true</maven.source.skip>
@@ -23,7 +23,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>dev.prathya</groupId>
+            <groupId>com.intrigsoft.prathya</groupId>
             <artifactId>prathya-gradle-plugin</artifactId>
             <version>${project.version}</version>
         </dependency>

@@ -165,7 +165,7 @@ requirements:
 ## Annotation Usage
 
 ```java
-import dev.prathya.annotations.Requirement;
+import com.intrigsoft.prathya.annotations.Requirement;
 
 // Single requirement
 @Test

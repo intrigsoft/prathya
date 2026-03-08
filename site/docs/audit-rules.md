@@ -46,7 +46,7 @@ Typical CI setup:
 
 ```xml
 <plugin>
-    <groupId>dev.prathya</groupId>
+    <groupId>com.intrigsoft.prathya</groupId>
     <artifactId>prathya-maven-plugin</artifactId>
     <version>${prathya.version}</version>
     <configuration>

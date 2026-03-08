@@ -169,7 +169,7 @@ requirements:
 ## Annotation Usage
 
 ```java
-import dev.prathya.annotations.Requirement;
+import com.intrigsoft.prathya.annotations.Requirement;
 
 class AuthServiceTest {
 
@@ -221,7 +221,7 @@ All modules share a parent `pom.xml` for version management. Published to Maven 
 A minimal JAR containing only the `@Requirement` annotation. Kept separate so test code has a lightweight dependency.
 
 ```java
-package dev.prathya.annotations;
+package com.intrigsoft.prathya.annotations;
 
 import java.lang.annotation.*;
 
@@ -293,14 +293,14 @@ Hooks into the Maven `verify` phase (after `test` phase completes).
 
 **Plugin coordinates:**
 ```xml
-<groupId>dev.prathya</groupId>
+<groupId>com.intrigsoft.prathya</groupId>
 <artifactId>prathya-maven-plugin</artifactId>
 ```
 
 **Usage in project `pom.xml`:**
 ```xml
 <plugin>
-    <groupId>dev.prathya</groupId>
+    <groupId>com.intrigsoft.prathya</groupId>
     <artifactId>prathya-maven-plugin</artifactId>
     <version>1.0.0</version>
     <configuration>

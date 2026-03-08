@@ -22,7 +22,7 @@ mvn install -DskipTests
 
 <dependencies>
     <dependency>
-        <groupId>dev.prathya</groupId>
+        <groupId>com.intrigsoft.prathya</groupId>
         <artifactId>prathya-annotations</artifactId>
         <version>${prathya.version}</version>
         <scope>test</scope>
@@ -36,7 +36,7 @@ mvn install -DskipTests
 <build>
     <plugins>
         <plugin>
-            <groupId>dev.prathya</groupId>
+            <groupId>com.intrigsoft.prathya</groupId>
             <artifactId>prathya-maven-plugin</artifactId>
             <version>${prathya.version}</version>
             <executions>
@@ -153,7 +153,7 @@ Each module gets its own `CONTRACT.yaml`. Add the `aggregate` goal to the parent
 ```xml
 <!-- Parent POM -->
 <plugin>
-    <groupId>dev.prathya</groupId>
+    <groupId>com.intrigsoft.prathya</groupId>
     <artifactId>prathya-maven-plugin</artifactId>
     <version>${prathya.version}</version>
     <executions>

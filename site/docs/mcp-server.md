@@ -33,7 +33,7 @@ An agent can read the contract before generating code, check coverage after gene
 Fetch the Prathya MCP server uber-jar into your local Maven repository:
 
 ```bash
-mvn dependency:get -Dartifact=dev.prathya:prathya-mcp-server:1.0.0-SNAPSHOT
+mvn dependency:get -Dartifact=com.intrigsoft.prathya:prathya-mcp-server:1.0.0-SNAPSHOT
 ```
 
 ## Configuration
@@ -49,8 +49,8 @@ Add the Prathya MCP server to your AI coding tool's MCP configuration. The serve
       "command": "jbang",
       "args": [
         "--quiet",
-        "--main", "dev.prathya.mcp.PrathyaMcpServer",
-        "dev.prathya:prathya-mcp-server:1.0.0-SNAPSHOT"
+        "--main", "com.intrigsoft.prathya.mcp.PrathyaMcpServer",
+        "com.intrigsoft.prathya:prathya-mcp-server:1.0.0-SNAPSHOT"
       ]
     }
   }
@@ -73,8 +73,8 @@ To pass options, append them after the artifact coordinate:
       "command": "jbang",
       "args": [
         "--quiet",
-        "--main", "dev.prathya.mcp.PrathyaMcpServer",
-        "dev.prathya:prathya-mcp-server:1.0.0-SNAPSHOT",
+        "--main", "com.intrigsoft.prathya.mcp.PrathyaMcpServer",
+        "com.intrigsoft.prathya:prathya-mcp-server:1.0.0-SNAPSHOT",
         "--contract-file", "/path/to/CONTRACT.yaml",
         "--test-classes", "/path/to/target/test-classes"
       ]

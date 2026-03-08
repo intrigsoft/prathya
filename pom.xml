@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>dev.prathya</groupId>
+    <groupId>com.intrigsoft.prathya</groupId>
     <artifactId>prathya</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
@@ -89,12 +89,12 @@
 
             <!-- prathya modules -->
             <dependency>
-                <groupId>dev.prathya</groupId>
+                <groupId>com.intrigsoft.prathya</groupId>
                 <artifactId>prathya-annotations</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>dev.prathya</groupId>
+                <groupId>com.intrigsoft.prathya</groupId>
                 <artifactId>prathya-core</artifactId>
                 <version>${project.version}</version>
             </dependency>

@@ -21,7 +21,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>dev.prathya</groupId>
+            <groupId>com.intrigsoft.prathya</groupId>
             <artifactId>prathya-annotations</artifactId>
             <version>${prathya.version}</version>
             <scope>test</scope>
@@ -62,7 +62,7 @@
                 </executions>
             </plugin>
             <plugin>
-                <groupId>dev.prathya</groupId>
+                <groupId>com.intrigsoft.prathya</groupId>
                 <artifactId>prathya-maven-plugin</artifactId>
                 <version>${prathya.version}</version>
                 <configuration>
