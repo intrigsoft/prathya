@@ -7,7 +7,7 @@
     <parent>
         <groupId>com.intrigsoft.prathya</groupId>
         <artifactId>prathya</artifactId>
-        <version>0.6.1-SNAPSHOT</version>
+        <version>0.6.1</version>
     </parent>
 
     <artifactId>prathya-core</artifactId>

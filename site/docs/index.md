@@ -24,7 +24,7 @@ Prathya introduces **Contract-Driven Development (CDD)** as a natural companion 
 <dependency>
     <groupId>com.intrigsoft.prathya</groupId>
     <artifactId>prathya-annotations</artifactId>
-    <version>0.6.1-SNAPSHOT</version>
+    <version>0.6.1</version>
     <scope>test</scope>
 </dependency>
 ```
