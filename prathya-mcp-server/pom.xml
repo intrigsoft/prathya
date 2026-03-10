@@ -16,12 +16,8 @@
     <name>prathya-mcp-server</name>
     <description>MCP server exposing Prathya contract tools via stdio</description>
 
-    <properties>
-        <maven.source.skip>true</maven.source.skip>
-        <maven.javadoc.skip>true</maven.javadoc.skip>
-    </properties>
 
-    <dependencies>
+<dependencies>
         <dependency>
             <groupId>com.intrigsoft.prathya</groupId>
             <artifactId>prathya-core</artifactId>
