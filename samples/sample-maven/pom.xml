@@ -6,7 +6,7 @@
 
     <groupId>com.example</groupId>
     <artifactId>sample-maven</artifactId>
-    <version>0.6.0</version>
+    <version>0.6.1-SNAPSHOT</version>
 
     <name>sample-maven</name>
     <description>Sample Maven project demonstrating prathya-maven-plugin usage</description>
@@ -16,7 +16,7 @@
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <prathya.version>0.6.0</prathya.version>
+        <prathya.version>0.6.1-SNAPSHOT</prathya.version>
     </properties>
 
     <dependencies>

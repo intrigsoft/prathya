@@ -13,7 +13,7 @@ Add contract-driven requirement coverage to any Maven project. Prathya scans you
 mvn install -DskipTests
 ```
 
-This installs `prathya-annotations`, `prathya-core`, and `prathya-maven-plugin` version `0.6.0`.
+This installs `prathya-annotations`, `prathya-core`, and `prathya-maven-plugin` version `0.6.1-SNAPSHOT`.
 
 ---
 
@@ -23,7 +23,7 @@ Add the following to your project's `pom.xml`:
 
 ```xml
 <properties>
-    <prathya.version>0.6.0</prathya.version>
+    <prathya.version>0.6.1-SNAPSHOT</prathya.version>
 </properties>
 
 <dependencies>

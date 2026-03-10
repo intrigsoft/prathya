@@ -27,7 +27,7 @@ Prathya introduces **Contract-Driven Development (CDD)** as a natural companion 
 <dependency>
     <groupId>com.intrigsoft.prathya</groupId>
     <artifactId>prathya-annotations</artifactId>
-    <version>0.6.0</version>
+    <version>0.6.1-SNAPSHOT</version>
     <scope>test</scope>
 </dependency>
 ```
@@ -88,11 +88,11 @@ Prathya runs after tests complete and produces an HTML report at `target/prathya
 
 ```kotlin
 plugins {
-    id("com.intrigsoft.prathya.gradle") version "0.6.0"
+    id("com.intrigsoft.prathya.gradle") version "0.6.1-SNAPSHOT"
 }
 
 dependencies {
-    testImplementation("com.intrigsoft.prathya:prathya-annotations:0.6.0")
+    testImplementation("com.intrigsoft.prathya:prathya-annotations:0.6.1-SNAPSHOT")
 }
 ```
 
@@ -116,7 +116,7 @@ Add it to your MCP configuration with [JBang](https://www.jbang.dev/):
       "args": [
         "--quiet",
         "--main", "com.intrigsoft.prathya.mcp.PrathyaMcpServer",
-        "com.intrigsoft.prathya:prathya-mcp-server:0.6.0"
+        "com.intrigsoft.prathya:prathya-mcp-server:0.6.1-SNAPSHOT"
       ]
     }
   }
