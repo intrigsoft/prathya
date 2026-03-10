@@ -17,7 +17,7 @@ mvn install -DskipTests
 
 ```xml
 <properties>
-    <prathya.version>0.6.2-SNAPSHOT</prathya.version>
+    <prathya.version>0.6.1</prathya.version>
 </properties>
 
 <dependencies>

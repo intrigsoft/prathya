@@ -118,7 +118,7 @@ bold "--- Setting release version $RELEASE_VERSION ---"
 # POMs (reactor modules)
 mvn versions:set -DnewVersion="$RELEASE_VERSION" -DgenerateBackupPoms=false -q
 
-# Docs, README, and sample files (replace old SNAPSHOT with release version)
+# Docs, README, and sample files
 DOC_FILES=(
     README.md
     docs/integration-guide.md
@@ -130,10 +130,32 @@ DOC_FILES=(
     samples/sample-gradle/build.gradle.kts
 )
 
+# Replace both the SNAPSHOT version and any previously pinned stable version
+# (docs are pinned to the latest stable release, not SNAPSHOT)
+CURRENT_STABLE="${CURRENT_VERSION%-SNAPSHOT}"
 for f in "${DOC_FILES[@]}"; do
     if [[ -f "$f" ]]; then
         sed -i "s/${CURRENT_VERSION}/${RELEASE_VERSION}/g" "$f"
+        sed -i "s/${CURRENT_STABLE}/${RELEASE_VERSION}/g" "$f"
     fi
+done
+
+# Also replace any older prathya version strings (e.g. docs pinned to a prior release)
+OLDER_VERSIONS=$(grep -rhoP '\d+\.\d+\.\d+' "${DOC_FILES[@]}" 2>/dev/null \
+    | grep -v "^${RELEASE_VERSION}$" \
+    | sort -uV)
+for old in $OLDER_VERSIONS; do
+    # Only replace versions that look like prathya versions (in prathya-specific contexts)
+    for f in "${DOC_FILES[@]}"; do
+        if [[ -f "$f" ]]; then
+            sed -i "s/com\.intrigsoft\.prathya\(.*\)${old}/com.intrigsoft.prathya\1${RELEASE_VERSION}/g" "$f"
+            sed -i "s/prathya\.version>${old}/prathya.version>${RELEASE_VERSION}/g" "$f"
+            sed -i "s/prathya-annotations:${old}/prathya-annotations:${RELEASE_VERSION}/g" "$f"
+            sed -i "s/prathya-mcp-server:${old}/prathya-mcp-server:${RELEASE_VERSION}/g" "$f"
+            sed -i "s/prathya\.gradle\") version \"${old}/prathya.gradle\") version \"${RELEASE_VERSION}/g" "$f"
+            sed -i "s/prathya\") version \"${old}/prathya\") version \"${RELEASE_VERSION}/g" "$f"
+        fi
+    done
 done
 
 green "Version set to $RELEASE_VERSION"
@@ -150,13 +172,10 @@ echo ""
 # --- Bump to next snapshot ---------------------------------------------
 bold "--- Setting next development version $NEXT_VERSION ---"
 
+# POMs
 mvn versions:set -DnewVersion="$NEXT_VERSION" -DgenerateBackupPoms=false -q
 
-for f in "${DOC_FILES[@]}"; do
-    if [[ -f "$f" ]]; then
-        sed -i "s/${RELEASE_VERSION}/${NEXT_VERSION}/g" "$f"
-    fi
-done
+# Docs stay pinned to the stable release version — do NOT replace with SNAPSHOT
 
 git add -A
 git commit -m "Prepare next development iteration ${NEXT_VERSION}"
