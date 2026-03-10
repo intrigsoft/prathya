@@ -9,11 +9,11 @@
 
 ```kotlin
 plugins {
-    id("com.intrigsoft.prathya.gradle") version "0.6.1"
+    id("com.intrigsoft.prathya.gradle") version "0.6.2-SNAPSHOT"
 }
 
 dependencies {
-    testImplementation("com.intrigsoft.prathya:prathya-annotations:0.6.1")
+    testImplementation("com.intrigsoft.prathya:prathya-annotations:0.6.2-SNAPSHOT")
 }
 ```
 

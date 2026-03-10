@@ -1,10 +1,10 @@
 plugins {
     java
-    id("com.intrigsoft.prathya") version "0.6.1"
+    id("com.intrigsoft.prathya") version "0.6.2-SNAPSHOT"
 }
 
 group = "com.example"
-version = "0.6.1"
+version = "0.6.2-SNAPSHOT"
 
 java {
     toolchain {
@@ -18,7 +18,7 @@ repositories {
 }
 
 dependencies {
-    testImplementation("com.intrigsoft.prathya:prathya-annotations:0.6.1")
+    testImplementation("com.intrigsoft.prathya:prathya-annotations:0.6.2-SNAPSHOT")
     testImplementation(platform("org.junit:junit-bom:5.10.1"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")

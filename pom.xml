@@ -6,7 +6,7 @@
 
     <groupId>com.intrigsoft.prathya</groupId>
     <artifactId>prathya</artifactId>
-    <version>0.6.1</version>
+    <version>0.6.2-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>prathya</name>
