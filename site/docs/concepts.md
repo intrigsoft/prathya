@@ -106,27 +106,29 @@ When JaCoCo is present, Prathya computes **contract code coverage** — the perc
 
 The gap between the two numbers is meaningful. If total code coverage is 87% but contract code coverage is 60%, then 27% of your code coverage comes from tests that aren't linked to any requirement. Those tests exercise code, but don't prove intent.
 
-## Interpreting the Metrics
+## The Two-Signal Model
+
+Requirement coverage is the primary signal. Code coverage only adds meaning once requirement coverage is healthy.
 
 Prathya measures requirement coverage — whether each documented requirement has a test mapped to it. It does not verify correctness; it trusts that a test annotated with `@Requirement("AUTH-001")` actually verifies that requirement. This is an indirect measurement.
 
-Used alongside JaCoCo's code coverage, the relationship between the two metrics helps identify specific issues:
+!!! failure "Signal 1 — Requirement Coverage Low"
+    Your module is not verified against its own contract. Either the requirements haven't been tested, or the tests that exist don't declare what they're proving. Code coverage being high or low alongside this is irrelevant — unverified requirements are unverified regardless.
 
-!!! failure "Requirement coverage below 100%"
-    Some requirements have no tests mapped to them. These are unverified parts of the contract.
+!!! warning "Signal 2 — Requirement Coverage High, Code Coverage Low"
+    Your contract tests exist and are mapped correctly, but they're not exercising the code. Three implications:
 
-!!! warning "Requirement coverage :material-arrow-up-bold: Code coverage :material-arrow-down-bold:"
-    Most requirements have mapped tests, but large portions of the code are not exercised. This may indicate:
+    - :material-close: **Tests are too shallow** — mocking core dependencies instead of running real code paths.
+    - :material-close: **Dead code exists** — logic that no requirement accounts for and no test reaches.
+    - :material-close: **Over-abstraction** — the contract doesn't reflect the full scope of what the module actually does.
 
-    - :material-close: **Tests are shallow** — annotated tests exist but rely heavily on mocking or do not exercise real code paths.
-    - :material-close: **Requirements are incomplete** — the contract does not capture all functionality in the module, leaving undocumented code untested.
-    - :material-close: **Dead code** — code exists that is not needed by any requirement and is never executed.
+!!! success "The Healthy State — Requirement Coverage High, Code Coverage High"
+    Intent is verified and the code backing it is exercised. JaCoCo and Prathya agree: nothing is hiding.
 
-!!! info "Requirement coverage :material-arrow-down-bold: Code coverage :material-arrow-up-bold:"
-    The codebase has substantial test coverage, but tests are not mapped to requirements. This may indicate:
+## Why This Matters for AI-Assisted Development
 
-    - :material-progress-clock: **CDD adoption in progress** — tests exist and the team is incrementally annotating them with `@Requirement`. This is a transitional state.
-    - :material-close: **Tests verify implementation, not intent** — tests exercise code but are not driven by documented business requirements. The tests may pass, but they do not prove that the contract is satisfied.
+LLMs are fast at generating code but rarely clean up after themselves. Features get rewritten, approaches change mid-conversation, and unused code accumulates — silently polluting the codebase and reducing maintainability.
 
-!!! success "Requirement coverage :material-arrow-up-bold: Code coverage :material-arrow-up-bold:"
-    Both metrics are high. Requirements are documented, tests are mapped, and code is well exercised. This is the target state.
+Prathya surfaces this problem. When requirement coverage is high but code coverage drops, it signals that code exists which no requirement accounts for and no test reaches. In an AI-assisted workflow, that's almost always dead code left behind by the LLM.
+
+The [MCP server](mcp-server.md) closes the loop: the agent reads the contract before generating code, checks coverage after generating tests, and you can use the coverage gap to direct the agent to clean up what it left behind.

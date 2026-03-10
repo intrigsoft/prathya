@@ -1,6 +1,7 @@
 # <img src="site/docs/assets/logo.svg" alt="Prathya" height="32"> Prathya
 
 [![CI](https://github.com/intrigsoft/prathya/actions/workflows/ci.yml/badge.svg)](https://github.com/intrigsoft/prathya/actions/workflows/ci.yml)
+[![Maven Central](https://img.shields.io/maven-central/v/com.intrigsoft.prathya/prathya-core)](https://central.sonatype.com/artifact/com.intrigsoft.prathya/prathya-core)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 **Contract-Driven Requirement Coverage for Java**
@@ -18,6 +19,16 @@ Prathya introduces **Contract-Driven Development (CDD)** as a natural companion 
 | **TDD** | Write the test first, then the code | Drives implementation but says nothing about whether the tests are the *right* tests |
 | **BDD** | Write behavior specifications in natural language | Improves communication but doesn't enforce traceability or coverage measurement |
 | **CDD** | Define the contract first. Tests are written against the contract | The contract is the source of truth — not the code, not the tests, not a ticket |
+
+## How is this different from JaCoCo?
+
+JaCoCo measures **code coverage** — which lines, branches, and paths were executed. Prathya measures **requirement coverage** — which documented requirements have tests mapped to them. JaCoCo tells you what code *ran*. Prathya tells you what requirements were *verified*. They're complementary, and together they form a two-signal model:
+
+- **Requirement coverage low** — your module is not verified against its own contract. Code coverage is irrelevant here — unverified requirements are unverified regardless.
+- **Requirement coverage high, code coverage low** — contract tests exist but aren't exercising the code. Tests may be too shallow, dead code may exist, or the contract doesn't reflect the full scope of the module.
+- **Both high** — intent is verified and the code backing it is exercised. Nothing is hiding.
+
+**Why this matters for vibe coding:** LLMs generate code fast but rarely clean up after themselves. Dead code accumulates silently as features get rewritten mid-conversation. Prathya signals the gap — code that no requirement accounts for — so you can direct the LLM to clean up what it left behind.
 
 ## Quick Start
 
@@ -83,6 +94,8 @@ mvn clean verify
 ```
 
 Prathya runs after tests complete and produces an HTML report at `target/prathya/index.html` and a JSON report at `target/prathya/prathya-report.json`.
+
+![Prathya Coverage Report](site/docs/assets/report-screenshot.png)
 
 ## Gradle
 
