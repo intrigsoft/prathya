@@ -8,7 +8,7 @@ import io.modelcontextprotocol.spec.McpSchema.ServerCapabilities;
 
 /**
  * Entry point for the Prathya MCP server.
- * Starts a sync MCP server over stdio that exposes 13 contract tools.
+ * Starts a sync MCP server over stdio that exposes 14 contract tools.
  */
 public class PrathyaMcpServer {
 

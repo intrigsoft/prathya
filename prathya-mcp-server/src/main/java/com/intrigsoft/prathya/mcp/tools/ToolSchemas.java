@@ -124,6 +124,23 @@ public final class ToolSchemas {
             }
             """;
 
+    public static final String CONFIGURE_PROJECT = """
+            {
+              "type": "object",
+              "properties": {
+                "build_tool": {
+                  "type": "string",
+                  "enum": ["maven", "gradle"],
+                  "description": "Build tool to generate configuration for. Auto-detected from pom.xml / build.gradle.kts if omitted."
+                },
+                "version": {
+                  "type": "string",
+                  "description": "Prathya version to use. Defaults to the latest release."
+                }
+              }
+            }
+            """;
+
     public static final String SUPERSEDE_REQUIREMENT = """
             {
               "type": "object",

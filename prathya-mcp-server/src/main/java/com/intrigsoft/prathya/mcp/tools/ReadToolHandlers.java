@@ -14,12 +14,13 @@ import com.intrigsoft.prathya.core.scanner.ReflectionAnnotationScanner;
 import com.intrigsoft.prathya.mcp.PrathyaServerConfig;
 import io.modelcontextprotocol.spec.McpSchema;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Handlers for the 7 read-only MCP tools.
+ * Handlers for the 8 read-only MCP tools.
  */
 public class ReadToolHandlers {
 
@@ -281,6 +282,253 @@ public class ReadToolHandlers {
         } catch (PrathyaException e) {
             return errorResult(e.getMessage());
         }
+    }
+
+    // ── configure_project ──
+
+    public McpSchema.CallToolResult configureProject(Map<String, Object> args) {
+        String buildTool = stringArg(args, "build_tool");
+        String version = stringArg(args, "version");
+        if (version == null) version = "0.6.1";
+
+        // Auto-detect build tool if not specified
+        if (buildTool == null) {
+            if (Files.exists(Path.of("pom.xml"))) {
+                buildTool = "maven";
+            } else if (Files.exists(Path.of("build.gradle.kts")) || Files.exists(Path.of("build.gradle"))) {
+                buildTool = "gradle";
+            } else {
+                return errorResult(
+                        "Could not auto-detect build tool. No pom.xml or build.gradle.kts found in working directory. " +
+                        "Specify build_tool explicitly as 'maven' or 'gradle'.");
+            }
+        }
+
+        if ("maven".equalsIgnoreCase(buildTool)) {
+            return textResult(mavenConfiguration(version));
+        } else if ("gradle".equalsIgnoreCase(buildTool)) {
+            return textResult(gradleConfiguration(version));
+        } else {
+            return errorResult("Unsupported build tool: " + buildTool + ". Use 'maven' or 'gradle'.");
+        }
+    }
+
+    private String mavenConfiguration(String version) {
+        return """
+                # Prathya Maven Configuration Guide
+
+                ## Step 1: Add the annotation dependency
+
+                Add to your `<dependencies>` section in pom.xml:
+
+                ```xml
+                <dependency>
+                    <groupId>com.intrigsoft.prathya</groupId>
+                    <artifactId>prathya-annotations</artifactId>
+                    <version>%1$s</version>
+                    <scope>test</scope>
+                </dependency>
+                ```
+
+                ## Step 2: Add the Prathya Maven plugin
+
+                Add to your `<build><plugins>` section:
+
+                ```xml
+                <plugin>
+                    <groupId>com.intrigsoft.prathya</groupId>
+                    <artifactId>prathya-maven-plugin</artifactId>
+                    <version>%1$s</version>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>verify</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+                ```
+
+                ## Step 3: Add JaCoCo for code coverage correlation (recommended)
+
+                JaCoCo lets Prathya show code coverage alongside requirement coverage.
+                Add to your `<build><plugins>` section:
+
+                ```xml
+                <plugin>
+                    <groupId>org.jacoco</groupId>
+                    <artifactId>jacoco-maven-plugin</artifactId>
+                    <version>0.8.12</version>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>prepare-agent</goal>
+                            </goals>
+                        </execution>
+                        <execution>
+                            <id>report</id>
+                            <phase>test</phase>
+                            <goals>
+                                <goal>report</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+                ```
+
+                JaCoCo `report` runs in the `test` phase, which completes before Prathya `verify` \
+                runs in the `verify` phase. No special ordering needed.
+
+                Prathya automatically reads the JaCoCo XML report from: \
+                `target/site/jacoco/jacoco.xml`
+
+                ## Step 4: Create CONTRACT.yaml
+
+                Create a `CONTRACT.yaml` file in your project root (next to pom.xml). Example:
+
+                ```yaml
+                module:
+                  id: MY-MODULE
+                  name: My Module
+                  version: "1.0"
+
+                requirements: []
+                ```
+
+                Then use `add_requirement` to add requirements to the contract.
+
+                ## Step 5: Run
+
+                ```bash
+                mvn clean verify
+                ```
+
+                Prathya will parse CONTRACT.yaml, scan test classes for @Requirement annotations, \
+                compute coverage, run audit, and generate reports in `target/prathya/`.
+
+                ## Optional: Coverage thresholds
+
+                Add `<configuration>` to the Prathya plugin to enforce minimum coverage:
+
+                ```xml
+                <configuration>
+                    <minimumRequirementCoverage>80</minimumRequirementCoverage>
+                    <minimumCornerCaseCoverage>60</minimumCornerCaseCoverage>
+                </configuration>
+                ```
+
+                ## Plugin goals reference
+
+                | Goal | Phase | Description |
+                |------|-------|-------------|
+                | `verify` | verify | Full pipeline: parse, scan, coverage, audit, reports. Fails on violations. |
+                | `audit` | manual | Audit only — reports violations without generating reports. |
+                | `report` | verify | Generate reports only (no build failure on violations). |
+                | `run` | manual | Run tests mapped to specific requirements via Surefire. |
+                | `aggregate` | verify | Aggregate reports across multi-module reactor. |
+                """.formatted(version);
+    }
+
+    private String gradleConfiguration(String version) {
+        return """
+                # Prathya Gradle Configuration Guide
+
+                ## Step 1: Apply the plugin and add the annotation dependency
+
+                In your `build.gradle.kts`:
+
+                ```kotlin
+                plugins {
+                    java
+                    id("com.intrigsoft.prathya") version "%1$s"
+                }
+
+                dependencies {
+                    testImplementation("com.intrigsoft.prathya:prathya-annotations:%1$s")
+                }
+                ```
+
+                Or in `build.gradle` (Groovy DSL):
+
+                ```groovy
+                plugins {
+                    id 'java'
+                    id 'com.intrigsoft.prathya' version '%1$s'
+                }
+
+                dependencies {
+                    testImplementation 'com.intrigsoft.prathya:prathya-annotations:%1$s'
+                }
+                ```
+
+                ## Step 2: Configure Prathya
+
+                ```kotlin
+                prathya {
+                    failOnViolations.set(true)
+                }
+                ```
+
+                ## Step 3: Add JaCoCo for code coverage correlation (recommended)
+
+                ```kotlin
+                plugins {
+                    jacoco
+                }
+
+                tasks.test {
+                    useJUnitPlatform()
+                    finalizedBy(tasks.jacocoTestReport)
+                }
+
+                tasks.jacocoTestReport {
+                    reports {
+                        xml.required.set(true)
+                    }
+                }
+
+                prathya {
+                    jacocoReportFile.set(layout.buildDirectory.file("reports/jacoco/test/jacocoTestReport.xml"))
+                }
+                ```
+
+                ## Step 4: Create CONTRACT.yaml
+
+                Create a `CONTRACT.yaml` file in your project root (next to build.gradle.kts). Example:
+
+                ```yaml
+                module:
+                  id: MY-MODULE
+                  name: My Module
+                  version: "1.0"
+
+                requirements: []
+                ```
+
+                Then use `add_requirement` to add requirements to the contract.
+
+                ## Step 5: Run
+
+                ```bash
+                gradle prathyaVerify
+                ```
+
+                ## Available tasks
+
+                | Task | Description |
+                |------|-------------|
+                | `prathyaVerify` | Full pipeline: parse, scan, coverage, audit, reports |
+                | `prathyaAudit` | Audit only — reports violations to console |
+                | `prathyaReport` | Generate reports only (no build failure) |
+                | `prathyaRun` | Run tests mapped to requirements |
+
+                ## Output locations
+
+                | Output | Location |
+                |--------|----------|
+                | HTML report | `build/prathya/index.html` |
+                | JSON report | `build/prathya/prathya-report.json` |
+                """.formatted(version);
     }
 
     // ── helpers ──

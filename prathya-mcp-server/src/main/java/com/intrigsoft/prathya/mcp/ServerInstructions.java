@@ -74,6 +74,11 @@ public final class ServerInstructions {
             - Minor — additive change (new corner case, expanded scope).
             - Patch — wording or clarification only, no behavioral change.
 
+            ## Getting started
+
+            If the project hasn't been configured with Prathya yet, use configure_project to get \
+            step-by-step setup instructions for Maven or Gradle, including JaCoCo integration.
+
             ## Workflow
 
             The typical CDD workflow is:

@@ -12,7 +12,7 @@ import io.modelcontextprotocol.spec.McpSchema;
 import java.util.Map;
 
 /**
- * Registers all 13 Prathya MCP tools on the server.
+ * Registers all 14 Prathya MCP tools on the server.
  */
 public class PrathyaToolRegistry {
 
@@ -74,6 +74,15 @@ public class PrathyaToolRegistry {
                 "Run this after manual edits to catch mistakes before they propagate.",
                 ToolSchemas.CONTRACT_FILE_ONLY,
                 read::validateContract);
+
+        // Setup tools (1)
+        register(server, "configure_project",
+                "Get step-by-step instructions for configuring Prathya in a Maven or Gradle project, " +
+                "including the annotation dependency, build plugin, JaCoCo integration, and " +
+                "CONTRACT.yaml creation. Auto-detects the build tool from pom.xml or build.gradle.kts " +
+                "in the working directory.",
+                ToolSchemas.CONFIGURE_PROJECT,
+                read::configureProject);
 
         // Write tools (6)
         register(server, "add_requirement",
