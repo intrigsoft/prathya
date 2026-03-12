@@ -8,8 +8,11 @@ import com.intrigsoft.prathya.core.coverage.DefaultCoverageComputer;
 import com.intrigsoft.prathya.core.model.*;
 import com.intrigsoft.prathya.core.parser.RequirementParser;
 import com.intrigsoft.prathya.core.parser.YamlRequirementParser;
+import com.intrigsoft.prathya.core.report.JacocoReportParser;
 import com.intrigsoft.prathya.core.scanner.AnnotationScanner;
+import com.intrigsoft.prathya.core.scanner.NonContractualScanner;
 import com.intrigsoft.prathya.core.scanner.ReflectionAnnotationScanner;
+import com.intrigsoft.prathya.core.scanner.ReflectionNonContractualScanner;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.DirectoryProperty;
@@ -24,6 +27,7 @@ import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -51,6 +55,11 @@ public abstract class AbstractPrathyaTask extends DefaultTask {
     @Input
     @Optional
     public abstract ListProperty<String> getExcludeStatuses();
+
+    @InputFile
+    @PathSensitive(PathSensitivity.RELATIVE)
+    @Optional
+    public abstract RegularFileProperty getJacocoReportFile();
 
     @Input
     @Optional
@@ -85,9 +94,36 @@ public abstract class AbstractPrathyaTask extends DefaultTask {
         Path classesDir = getClassesDir().getAsFile().get().toPath();
         List<TraceEntry> traces = scanner.scan(List.of(testDir), List.of(classesDir));
 
+        // 3b. Scan production classes for @NonContractual exclusions
+        NonContractualScanner ncScanner = new ReflectionNonContractualScanner();
+        List<NonContractualEntry> exclusions = ncScanner.scan(List.of(classesDir));
+
         // 4. Compute coverage
         CoverageComputer coverageComputer = new DefaultCoverageComputer();
         CoverageMatrix matrix = coverageComputer.compute(contract, traces);
+
+        // 4b. Read JaCoCo code coverage if available
+        CodeCoverageSummary codeCoverage = null;
+        if (getJacocoReportFile().isPresent()) {
+            Path jacocoPath = getJacocoReportFile().getAsFile().get().toPath();
+            if (Files.exists(jacocoPath)) {
+                try {
+                    codeCoverage = new JacocoReportParser().parse(jacocoPath, exclusions);
+                    getLogger().lifecycle("  JaCoCo report found: {}", jacocoPath);
+                    if (!exclusions.isEmpty()) {
+                        getLogger().lifecycle("  Non-contractual exclusions: {}", exclusions.size());
+                    }
+                } catch (IOException e) {
+                    getLogger().warn("  Failed to read JaCoCo report: {}", e.getMessage());
+                }
+            }
+        }
+        if (codeCoverage != null) {
+            matrix = new CoverageMatrix(
+                    matrix.getModule(), matrix.getSummary(),
+                    matrix.getRequirements(), matrix.getViolations(),
+                    matrix.getContract(), codeCoverage);
+        }
 
         // 5. Audit
         AuditEngine auditEngine = new DefaultAuditEngine();

@@ -10,7 +10,9 @@ import com.intrigsoft.prathya.core.parser.RequirementParser;
 import com.intrigsoft.prathya.core.parser.YamlRequirementParser;
 import com.intrigsoft.prathya.core.report.JacocoReportParser;
 import com.intrigsoft.prathya.core.scanner.AnnotationScanner;
+import com.intrigsoft.prathya.core.scanner.NonContractualScanner;
 import com.intrigsoft.prathya.core.scanner.ReflectionAnnotationScanner;
+import com.intrigsoft.prathya.core.scanner.ReflectionNonContractualScanner;
 
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoFailureException;
@@ -86,6 +88,10 @@ public abstract class AbstractPrathyaMojo extends AbstractMojo {
         }
         List<TraceEntry> traces = scanner.scan(List.of(testDir), additionalClasspath);
 
+        // 3b. Scan production classes for @NonContractual exclusions
+        NonContractualScanner ncScanner = new ReflectionNonContractualScanner();
+        List<NonContractualEntry> exclusions = ncScanner.scan(List.of(Path.of(classesDirectory)));
+
         // 4. Compute coverage (uses filtered contract — excludes deprecated/superseded)
         CoverageComputer coverageComputer = new DefaultCoverageComputer();
         CoverageMatrix matrix = coverageComputer.compute(filteredContract, traces);
@@ -95,8 +101,11 @@ public abstract class AbstractPrathyaMojo extends AbstractMojo {
         Path jacocoPath = Path.of(jacocoReportFile);
         if (Files.exists(jacocoPath)) {
             try {
-                codeCoverage = new JacocoReportParser().parse(jacocoPath);
+                codeCoverage = new JacocoReportParser().parse(jacocoPath, exclusions);
                 getLog().info("  JaCoCo report found: " + jacocoPath);
+                if (!exclusions.isEmpty()) {
+                    getLog().info("  Non-contractual exclusions: " + exclusions.size());
+                }
             } catch (IOException e) {
                 getLog().warn("  Failed to read JaCoCo report: " + e.getMessage());
             }
