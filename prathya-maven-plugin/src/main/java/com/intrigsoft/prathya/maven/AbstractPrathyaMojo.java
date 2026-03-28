@@ -8,7 +8,6 @@ import com.intrigsoft.prathya.core.coverage.DefaultCoverageComputer;
 import com.intrigsoft.prathya.core.model.*;
 import com.intrigsoft.prathya.core.parser.RequirementParser;
 import com.intrigsoft.prathya.core.parser.YamlRequirementParser;
-import com.intrigsoft.prathya.core.report.JacocoReportParser;
 import com.intrigsoft.prathya.core.scanner.AnnotationScanner;
 import com.intrigsoft.prathya.core.scanner.NonContractualScanner;
 import com.intrigsoft.prathya.core.scanner.ReflectionAnnotationScanner;
@@ -29,6 +28,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public abstract class AbstractPrathyaMojo extends AbstractMojo {
+
+    private static final String PRATHYA_EXEC_RELATIVE = "prathya/jacoco/jacoco.exec";
 
     @Parameter(property = "prathya.contractFile", defaultValue = "${project.basedir}/CONTRACT.yaml")
     protected String contractFile;
@@ -53,10 +54,6 @@ public abstract class AbstractPrathyaMojo extends AbstractMojo {
 
     @Parameter(property = "prathya.minimumCornerCaseCoverage", defaultValue = "0")
     protected double minimumCornerCaseCoverage;
-
-    @Parameter(property = "prathya.jacocoReportFile",
-               defaultValue = "${project.build.directory}/site/jacoco/jacoco.xml")
-    protected String jacocoReportFile;
 
     @Parameter(defaultValue = "${project}", readonly = true)
     protected MavenProject project;
@@ -96,20 +93,8 @@ public abstract class AbstractPrathyaMojo extends AbstractMojo {
         CoverageComputer coverageComputer = new DefaultCoverageComputer();
         CoverageMatrix matrix = coverageComputer.compute(filteredContract, traces);
 
-        // 4b. Read JaCoCo code coverage if available
-        CodeCoverageSummary codeCoverage = null;
-        Path jacocoPath = Path.of(jacocoReportFile);
-        if (Files.exists(jacocoPath)) {
-            try {
-                codeCoverage = new JacocoReportParser().parse(jacocoPath, exclusions);
-                getLog().info("  JaCoCo report found: " + jacocoPath);
-                if (!exclusions.isEmpty()) {
-                    getLog().info("  Non-contractual exclusions: " + exclusions.size());
-                }
-            } catch (IOException e) {
-                getLog().warn("  Failed to read JaCoCo report: " + e.getMessage());
-            }
-        }
+        // 4b. Compute code coverage from Prathya's exec file (best-effort)
+        CodeCoverageSummary codeCoverage = readCodeCoverage(exclusions);
         if (codeCoverage != null) {
             matrix = new CoverageMatrix(
                     matrix.getModule(), matrix.getSummary(),
@@ -215,6 +200,31 @@ public abstract class AbstractPrathyaMojo extends AbstractMojo {
             CodeCoverageSummary ccc = matrix.getContractCodeCoverage();
             getLog().info(String.format("  Contract code coverage: %.1f%% lines, %.1f%% branches",
                     ccc.getLineRate(), ccc.getBranchRate()));
+        }
+    }
+
+    /**
+     * Reads code coverage from Prathya's own JaCoCo exec file
+     * ({@code target/prathya/jacoco/jacoco.exec}), applying {@code @NonContractual} exclusions.
+     * Returns {@code null} if the exec file does not exist (e.g. {@code prepare-agent} was not run).
+     */
+    protected CodeCoverageSummary readCodeCoverage(List<NonContractualEntry> exclusions) {
+        Path execFile = Path.of(outputDirectory).getParent().resolve(PRATHYA_EXEC_RELATIVE);
+        if (!Files.exists(execFile)) {
+            getLog().debug("Prathya exec file not found (run prepare-agent first): " + execFile);
+            return null;
+        }
+        try {
+            CodeCoverageSummary summary = new JacocoCoverageAnalyzer()
+                    .analyze(execFile, Path.of(classesDirectory), exclusions);
+            getLog().info("  Code coverage computed from: " + execFile);
+            if (!exclusions.isEmpty()) {
+                getLog().info("  Non-contractual exclusions applied: " + exclusions.size());
+            }
+            return summary;
+        } catch (IOException e) {
+            getLog().warn("Failed to analyze JaCoCo exec file: " + e.getMessage());
+            return null;
         }
     }
 

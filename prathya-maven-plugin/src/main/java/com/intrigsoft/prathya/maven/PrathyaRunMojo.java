@@ -7,7 +7,6 @@ import com.intrigsoft.prathya.core.coverage.DefaultCoverageComputer;
 import com.intrigsoft.prathya.core.model.*;
 import com.intrigsoft.prathya.core.parser.YamlRequirementParser;
 import com.intrigsoft.prathya.core.report.HtmlReportWriter;
-import com.intrigsoft.prathya.core.report.JacocoReportParser;
 import com.intrigsoft.prathya.core.report.JsonReportWriter;
 import com.intrigsoft.prathya.core.runner.DefaultPrathyaTestRunner;
 import com.intrigsoft.prathya.core.runner.PrathyaTestRunner;
@@ -88,18 +87,6 @@ public class PrathyaRunMojo extends AbstractPrathyaMojo {
                 return;
             }
 
-            // 4b. Read existing JaCoCo report as total code coverage (from previous full test run)
-            CodeCoverageSummary totalCodeCoverage = null;
-            Path jacocoPath = Path.of(jacocoReportFile);
-            if (Files.exists(jacocoPath)) {
-                try {
-                    totalCodeCoverage = new JacocoReportParser().parse(jacocoPath);
-                    getLog().info("  JaCoCo report found (total code coverage): " + jacocoPath);
-                } catch (IOException e) {
-                    getLog().warn("  Failed to read JaCoCo report: " + e.getMessage());
-                }
-            }
-
             // 5. Classify and execute by scope
             // Contract-test JaCoCo exec file — separate from the project's main jacoco.exec
             Path buildDir = Path.of(outputDirectory).getParent(); // target/
@@ -174,20 +161,22 @@ public class PrathyaRunMojo extends AbstractPrathyaMojo {
                     testRunResult.getTotalTests(), testRunResult.getPassed(),
                     testRunResult.getFailed(), testRunResult.getErrors(), testRunResult.getSkipped()));
 
-            // 8. Generate contract code coverage report (best-effort)
+            // 8. Compute contract code coverage from exec file (best-effort)
+            // Also scan @NonContractual exclusions so they are excluded from counters
+            com.intrigsoft.prathya.core.scanner.NonContractualScanner ncScanner =
+                    new com.intrigsoft.prathya.core.scanner.ReflectionNonContractualScanner();
+            List<com.intrigsoft.prathya.core.model.NonContractualEntry> exclusions =
+                    ncScanner.scan(List.of(classesDir));
+
             CodeCoverageSummary contractCodeCoverage = null;
             Path contractExecPath = Path.of(contractExecFile);
             if (Files.exists(contractExecPath)) {
                 try {
-                    Path contractJacocoDir = buildDir.resolve("prathya/jacoco");
-                    invokeJacocoReport(contractExecFile, contractJacocoDir.toString());
-                    Path contractJacocoXml = contractJacocoDir.resolve("jacoco.xml");
-                    if (Files.exists(contractJacocoXml)) {
-                        contractCodeCoverage = new JacocoReportParser().parse(contractJacocoXml);
-                        getLog().info("  Contract code coverage report generated: " + contractJacocoXml);
-                    }
-                } catch (Exception e) {
-                    getLog().debug("  Could not generate contract code coverage report: " + e.getMessage());
+                    contractCodeCoverage = new JacocoCoverageAnalyzer()
+                            .analyze(contractExecPath, classesDir, exclusions);
+                    getLog().info("  Contract code coverage computed from: " + contractExecPath);
+                } catch (IOException e) {
+                    getLog().debug("  Could not compute contract code coverage: " + e.getMessage());
                 }
             }
 
@@ -195,12 +184,12 @@ public class PrathyaRunMojo extends AbstractPrathyaMojo {
             DefaultCoverageComputer coverageComputer = new DefaultCoverageComputer();
             CoverageMatrix matrix = coverageComputer.compute(filteredContract, traces, testRunResult);
 
-            // Set code coverage data on the matrix
-            if (totalCodeCoverage != null || contractCodeCoverage != null) {
+            // Set contract code coverage data on the matrix
+            if (contractCodeCoverage != null) {
                 matrix = new CoverageMatrix(
                         matrix.getModule(), matrix.getSummary(),
                         matrix.getRequirements(), matrix.getViolations(),
-                        matrix.getContract(), totalCodeCoverage, contractCodeCoverage);
+                        matrix.getContract(), null, contractCodeCoverage);
             }
 
             // 11. Audit + threshold checks (uses full contract for deprecated/superseded detection)
@@ -276,23 +265,4 @@ public class PrathyaRunMojo extends AbstractPrathyaMojo {
         }
     }
 
-    private void invokeJacocoReport(String dataFile, String outputDirectory) throws MavenInvocationException {
-        InvocationRequest request = new DefaultInvocationRequest();
-        request.setPomFile(new File(projectBasedir, "pom.xml"));
-        request.setGoals(Collections.singletonList("jacoco:report"));
-        request.addArg("-Djacoco.dataFile=" + dataFile);
-        request.addArg("-Djacoco.outputDirectory=" + outputDirectory);
-        request.setBatchMode(true);
-
-        Invoker invoker = new DefaultInvoker();
-        if (mavenHome != null) {
-            invoker.setMavenHome(new File(mavenHome));
-        }
-
-        InvocationResult result = invoker.execute(request);
-        if (result.getExitCode() != 0) {
-            getLog().debug("jacoco:report exited with code " + result.getExitCode()
-                    + " (JaCoCo may not be configured)");
-        }
-    }
 }

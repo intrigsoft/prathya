@@ -13,6 +13,15 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
 
+/**
+ * Parses a JaCoCo XML report to produce a {@link CodeCoverageSummary}.
+ *
+ * @deprecated Since 0.7.0, Prathya owns its JaCoCo lifecycle via {@code prepare-agent} and
+ *             computes coverage directly from the {@code .exec} file using
+ *             {@code JacocoCoverageAnalyzer} in the Maven plugin. This class is retained for
+ *             backwards compatibility but is no longer used by Prathya's built-in mojos.
+ */
+@Deprecated(since = "0.7.0")
 public class JacocoReportParser {
 
     public CodeCoverageSummary parse(Path jacocoXmlFile) throws IOException {
